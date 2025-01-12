@@ -1,0 +1,356 @@
+Notes section for World of Jack
+
+Start Scripts
+     - /worldOfJack           npm start
+     - /worldOfJack/server    node server.js
+
+Index:
+    - Prioritization
+    - Content Ideas
+    - Features Timeline
+    - TODO
+
+
+
+
+How it's made
+// Dev steps
+
+// create-react-app
+// Packages: mongoose
+
+// ChatGPT prompts:
+// how do i create a new react app with connections to mongodb
+// how do i connect this code to a github repository
+
+
+
+********************************************************************************
+Prioritization
+********************************************************************************
+
+Priority:             1 = ASAP        5 = Backlog     10 = Do later
+T-Shirt Sizing:       S = Small       M = Medium      L = Large 
+
+10-3: Mobile
+1-M: "Archived" features list
+         Description: (add "Settings" feature for which stats to be included for current user. Based on upload, if you use document list of switchs )
+         Settings: can control archived features *which is a great idea
+5-M: FIR L/F/R attribute should be stat displayed somethere
+         Simliar to how individual holes show a stat for FIR L/F/R and scores for left miss vs right, show this is a flow state
+         Get rid of sankey graph (not working) and create visual to illustrate hole
+         Reference swing thoughts to book & copy phrases
+5-S: Scorecard entry option to "Hide Round" or "Just for fun round" with dropdown of notes to be added to rounds (example: boozeRound)
+5-M: Custom filter option to add course - popup to select course from dropdown with search ability?
+5-S: Custom filter for last 20 rounds (will display only last 20 in activeRounds sorted by date, should also work in tandem with other filters)
+5-L: Calculate approach metrics for Par 4 and Par 5 separately - based on DTG. Will paint better picture of actual GIR and G-1 probably from 250+  
+7-L: Add form for new course data (Course name, can dynamically create course key, HDCP, Distance) - ability to pull in existing course data
+10-M: Ability to edit existing scorecards and update in DB
+5-M: Custom filters for ANY round attribute (call it advanced filter?) - will likely just need to create modal for each value, display names for each attribute,
+          Will need to filter out some attributes (course key, maybe other duplicates such as Date which already exists in GolfTable headers)
+          Allows sort Ascending/Descending for certain attributes (not course)
+          Allow applying of secondary filter (After filtering by A, filter by B)?
+
+Establish a list of features from above and compile with list from phone to determine which is the best one to get ready for next GHIN season
+
+
+********************************************************************************
+Content Ideas
+********************************************************************************
+
+
+
+
+
+
+********************************************************************************
+Feature Timeline
+********************************************************************************
+
+
+
+
+
+
+
+********************************************************************************
+TODO
+********************************************************************************
+
+
+when working offline, allow rounds to be entered on UI and populated into temporary file
+- when back online, attempt to insert round information from file and delete
+
+For scorecard entry, make overlay of golf hole disgram made with this tool
+https://www.reddit.com/r/Inkscape/comments/zavhkw/how_to_make_a_quick_editable_map_of_a_golf_hole/
+
+
+10/15/24 SS Hole 13 should have 3P, not LB for notes
+
+!displayUploadButton && activePage !== "Enter Scorecard" && activePage !== "Course Tour"
+
+
+Rename eagleRound to highlightRound - need to calculate "eagleRound" along with other round metrics seen in mongo
+Similar to rounds being highlighted, highlight nice course names with font color? (TPC logo beside course name?) (destination round icon - make tooltip hover) (bucketlist round icon - make tooltip hover)
+
+Find all instances of array of 2 Blackledge courses and make into CONST file
+
+Features:
+Avg DTG/FPM/DTM
+Scramble shots off tee/putt/approach
+Include additional holes in single hole metrics
+Percent of Sand shots still in sand & sand shots DTH/DTG
+
+**Map of all courses played with coordinates
+legacy scorecards
+
+
+Store "notable" legacy rounds to filter
+
+Clickable course info by golf table
+
+
+Handicap variance after each round 0.2->0.4->+0.1 - will be more strict about entering scores each time (more accurate and accountability to only post good scores)
+
+
+******** Set up feature for FIR to take in L12, as in a number will indicate how many yards off the fair are you. Can begin next GHIN season (March 15th)
+
+
+
+Golf book notes
+         
+
+ADD COMPONENTS - YOU NEED TO MODULARIZE YOUR CODE
+
+Build container functions similar to global.css (most similar to )
+
+Index of all features in the app
+
+
+Go through all images on phone
+
+
+Need to work on Par 3 scoring average is at 3.26 - could this be a part of "works in progress?"
+
+
+
+
+
+Need to publish this site
+Need to connect to mongo and not have to use Excel - migrate all legacy data, can probably translate with a Anaconda PY code editing tool (could be on other laptop)
+
+
+
+Add environment variable (DEV_MODE=true, default to false when not being passed, in case of deploy)
+Controls display of new page: "advanced settings" containing Feature Index (defined above)
+         This can just be a card coded HTML page (should be it's own component)
+         Break these notes into tabs - these will be for each site (below .ENV variable): Golf, Coins
+Environment variable will be a few options "World of Jack" (Taylor came up with this name), "Gilson Golfs", "Coins" ----- need to add coin page
+         Has helped me find purpose, can reflect on the best things in life (part of vows?) Need to illustrate how beautiful life is and website is the vehicle to reflection and self fulfillment for me
+All code can still live in one codebase but published as different sites
+ENV will control which actions are visible in advanced settings
+Default site "configuration" (now being called settings) may be starting initial state for settings page toggles/archived features
+
+
+* Before reading below - make more sense to break these into different apps? One for golf and one for world of jack - these two sites should link back and fourth (On golf site, Created by "World of Jack")
+         Link to LinkedIN porfile? or share a post with network? "It's not a portfolio site, but you get an idea of my abilities."
+         
+Make Coins page - Before documenting coins, create WF's for UI page
+
+Make Finances page - similar to "displayed rounds", have page to illustrate expense in each category, graphs for growth of each fund
+             Money timeline? Robinhood (deposited $3k Aug 2024)
+             Instead of conditional formatting, color code a pie chart with assets in each category
+Pie chart for Budgeting each year
+Have sliders to make budget dynamic
+Fun category
+     + Add Expense button to pie chart
+
+Wish list page with sliders
+     If 10% of budget should go towards
+     Add links to items on amazon (embed listings <iframe/> into page?)
+     Housing decorations budget:
+             $500 or X per year
+             New chairs, items are "weighted" based on tandem of rating factors:
+                 *Sorted by price
+                 "Want vs need" factor, 1 = want, 10 = need
+                 "Turndogs" or "Zoomies" rating, based on how important it is to you (Tooltip note: "Note: this rating is sacred, and must be weighted conservatively. Use caution, and pick your battles")
+
+      Implementation detail: Supply a list of links (copied from prime)
+      Add prompt for wishlist items that have not entered "rating factor"
+             This gets saved locally, if this item does not have "rating factors" saved, it automatically asks users to enter a few questions (above)
+             
+
+Coding block example to control budget initial values
+
+(These values could derive from mongo as a user profile data point), populated on UI and published to DB with edits
+CONSTS for now, convert to ***Finances DB***
+Annual Financial Summary entries (Can be it's own tab - make visible for each year instead of just all on one sheet)
+
+year *primary key
+finances CONSTS: 
+     ATTRIBUTES = {
+         keyName: "k401",
+         displayName: "401(k)"
+     }
+
+income = X
+deductions = 10%
+401(k) Contribution = 10%
+taxed = 24%
+
+**Feature note: Before converting to DB, need to make every column number instead of currency format
+Assets: {
+     k401: "100000"
+     robinhood: "10000"
+}
+
+Ability to compare ach year and see which assets grew the most in a year
+"Annual review section for each year"
+Ability to compare 2 years side by side
+In WF, ensure all components can be segregated in to L/R halves of screen
+
+Finance sections on page: annual summaries row (similar to golf) Saved X number of dollars
+     Row expansion subcomponent (or individual year tab) can display the following features:
+             Bar graph (experiment timeline component) with toggle for "current savings" and "cumulative savings" (all time)
+
+
+
+Features need a notes section to describe all code
+
+Should probably document every function in this site
+
+
+
+Photo album for life events on site? Can begin documenting and organzing papers for football games, wedding invites, sorted by date
+
+Wedding page - should publish this
+
+
+Allow handicap calcluation to take *course rating* into account
+
+Don't need to migrate to mongo just yet, prioritize late and continue to use Excel upload for the time being
+
+
+
+*****Try to post this year as post of blog - add day/month/year to each item posted, including swing videos/swing thought journal entries/youtube content ****
+section to post youtube videos/screen recordings/my swing videos of each shot type/other content
+
+
+
+
+
+
+Modularize codebase better, move functions and helpers into different files
+
+Begin using consts more
+
+
+
+Feature Ideas
+Scorecard Data "Key"
+     -Scorecard needs to be it's own component
+     -In scorecard, beside "Expand" link, show toggle for expansion (stop using) expand collapse verbiage (might not have to be it's own component yet, could just display toggle with onclick?)
+     -Toggle named "Show Key": scorecard details and course info
+     -Can show FIR = Fairway in Regulation
+     -Style: Small font, add beside chips shown for each score (Eagle = yellow, etc.)
+     -While editing this feature, edit scoring background color key to background color behind score Name <Badge title="Eagle" backgroundColorYellow />
+     -Style: display all keys in a flex flow row wrap space between container
+
+
+
+
+Maybe not needed - search "handicapCutoffRoundBottomBorder"
+Small style: handicap 20 round subsomponent?
+----- better divider to show "Handicap" Cutoff similar to the appearance of this row with divider? (Could make use of CSS :after if needed) ------
+.map(rounds => (need to take index parameter "i" to show small divider subcomponent to show HDCP cutoff indication, which only shows when sorted by date) => ( return ) ) function that is used to display 
+
+
+Chips/Badge beside each round
+     Passed into mongo entry 
+     For now split/regex on date cell
+     CONDITIONS=[Rainy, ...
+     More scorecard fields when entering on site and connected to Mongo: Who did you play with?
+                 Entering name will begin to populate people you have already played with
+                 Can view stat to see how well you play with each person
+         Can find if there are other data points to add here
+         
+     Populate chip if certain conditions are true
+         "Story" round - something interesting happened
+         Eagle round/even par or better round - remove row indication?
+         Migrate "HDCP" tag/badge in place of current indication
+
+     
+         
+
+     Prepopulate a few "sample conditions" (or just call them "Round tags")
+         Separate alllllll options for tags into sections:
+                 Weather
+                 Playing 
+     (with feature to add conditions to each round) in excel cell row) course conditions) rain, 
+
+
+
+Annual summary needs CONSTS file
+     Each year, enter low HDCP number (2024: 0.2)
+     Populate column for low GHIN and make this sortable by year (disokay new column when filter for annual summaries is shown)
+
+
+
+
+Post site on reddit
+putting revelation - Highlight that putter alignment was off? Take picture? seems to be fine, just has to do with grip/forward press positioning
+Link to previous post
+Footage of stroke from different angles?
+
+
+Github Submodules for WorldOfJack fragments - could be separate frontends with different styles
+
+
+Golf Expenses spreadsheet or table? add "category" for club/round/punch pass/range pass/range balls - ability to add more categories on UI
+
+
+
+Annual summary to include swing videos of each shot type?
+     Shot types: putter, driver, PW, 7i, 2i, 4W
+     Chips: flop, chip (stock), pitch (low), BR
+     Show visualization of shot shape
+
+
+
+Diagram of swing videos with shot shapes
+     Left of screen shows different shot shapes
+         Default left side to "stock" swing on right of screen
+         Swing thoughts - should this derive "WIP" from swing notes - currently contained in to notes on phone but could be updated on site
+         Inspiration section is optional - could be self taught, from book, video
+     When one is clicked, updates right of screen to show the associated video
+     Timestamp a date to each swing video (Last Updated: Nov. 2024)
+     Footage of stroke from different angles?
+
+
+Document ALL swing reps in excel somewhere - ideally in site
+     Ability to enter practice routine, number of shots, date, swing thoughts
+     Can overlap with trends (Show beside rounds) in scoring eventually
+
+
+Future: integrate with AI to ask what I should be working on given 10GIR 8FIR each round, what should I work on
+     Autogenerate pre-defined template prompt to be copied - query an AI directly?
+
+
+         
+Questionairre of things end of each year
+
+Golf - specific part: "How did you do this year, what did you work on, what was the best swing thought/insp item from this year, what can be improved, goals for next year"
+
+
+
+Hide mongo uri in ENV's
+
+Hied scorecard entry tab - any other tabs to be hidden?
+
+
+Latest NPM version - should get latest Node version too
+https://docs.npmjs.com/try-the-latest-stable-version-of-npm
+
+ 
+
+Compile all notes into this file going forward.
