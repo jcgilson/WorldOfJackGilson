@@ -97,8 +97,9 @@ Establish a list of features from above and compile with list from phone to dete
 Content Ideas
 ********************************************************************************
 
-
-
+"Swing Theory"
+Already exists for PGA - Jake Knapp example
+https://www.youtube.com/watch?v=yZDtu2qhqNs
 
 
 
