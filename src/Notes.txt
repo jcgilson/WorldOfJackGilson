@@ -101,12 +101,11 @@ Content Ideas
 Already exists for PGA - Jake Knapp example
 https://www.youtube.com/watch?v=yZDtu2qhqNs
 
-
+Avoids "stocatto" in follow through
 
 ********************************************************************************
 Feature Timeline
 ********************************************************************************
-
 
 
 
@@ -334,6 +333,11 @@ Annual summary needs CONSTS file
      Each year, enter low HDCP number (2024: 0.2)
      Populate column for low GHIN and make this sortable by year (disokay new column when filter for annual summaries is shown)
 
+
+
+
+"timeline" component for different section of site
+https://mui.com/material-ui/react-timeline/
 
 
 
