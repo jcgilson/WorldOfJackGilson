@@ -1,5 +1,5 @@
 // server.js
-
+import { uri } from "./uri";
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -23,7 +23,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB URI (Replace with your MongoDB Atlas URI or local URI)
-const mongoURI = REACT_APP_MONGO_CONNECTION_STRING;
+const mongoURI = uri;
 
 // Connect to MongoDB
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
