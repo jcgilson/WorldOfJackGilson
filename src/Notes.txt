@@ -50,6 +50,45 @@ T-Shirt Sizing:       S = Small       M = Medium      L = Large
           Will need to filter out some attributes (course key, maybe other duplicates such as Date which already exists in GolfTable headers)
           Allows sort Ascending/Descending for certain attributes (not course)
           Allow applying of secondary filter (After filtering by A, filter by B)?
+5-L: Allow partial rounds to be added
+8-S: Make course records sortable by date (need to add) & total score to par
+7-S: DONE: Add country flag beside international round course names (configure image source in consts)
+7-M: Pull PGA tour data (ex driving distance) for comparisons -> find .chakra-table tr that contains td->span text "tour average", scan all other spans and output value that is number
+
+
+
+
+First tourney is FREE, $25 payout to winner - make live by Mar 6 (Puerto Rico open), week before PLAYERS
+
+Entire site feature: golf pools
+make gmail for "Gilson Golf Pools"
+Google form for player selection -> able to multiselect 6 players (not tiered? or use dfs salaries?)
+          could also be form on site
+     -pull all players from "tournaments" api
+Send form results via email before tournament start with link to leaderboard (send 1 hour before tourney)
+     -create email list with "unsubscribe" button?
+Payment management (venmo or apple pay only) - google docs column (also linked to email)
+Create tournament schema
+     -date
+     -tourney name
+     -leaderboard link (pga tour site)
+
+Pull entire leaderboard
+
+
+keep running list of everyone's results (by email)
+     -number of tournmanets played
+     -players selected with results (scoreToPar, birdies, 1/2/3 place)
+     -average payout (Expected Value - EV per tournament)
+
+
+
+
+
+
+scorecards api returns massive array of all golfers
+https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_7f2f7f19-0407-4724-a1e5-abffc7c4a299
+
 
 Establish a list of features from above and compile with list from phone to determine which is the best one to get ready for next GHIN season
 

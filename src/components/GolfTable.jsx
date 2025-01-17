@@ -1,6 +1,20 @@
 import {
     Table, TableHead, TableBody, TableRow, TableCell, TextField,
 } from '@mui/material';
+import { courses } from '../helpers/GolfConsts'
+
+const internationalFlag = (round) => {
+    const courseIndex = courses.findIndex(course => course.courseKey === round.roundInfo.courseKey)
+    if (courses[courseIndex].internationalFlag) {
+        return (
+            <div className="marginRightSmall noMarginTop noMarginBottom alignCenter">
+              <img src={courses[courseIndex].internationalFlag} style={{ height: "12px", width: "18px", border: "1px solid white" }} alt={`${courses[courseIndex].internationalFlag} international flag`} />
+            </div>
+        );
+    }
+    
+    return null;
+}
 
 const GolfTable = (props) => {
     const {
@@ -36,7 +50,7 @@ const GolfTable = (props) => {
         handicapMetrics,
         activeRounds,
         editScorecard
-} = props;
+    } = props;
 
     return (
         <Table style={{ maxWidth: "80vw" }} className="golfTable">
@@ -76,11 +90,12 @@ const GolfTable = (props) => {
                 </TableRow>
             </TableHead>
             {filters.includes('Annual Summaries') ?
-                <TableBody>
-                    {roundYears.map((year) => {
-                        return getAnnualSummaryRows(year)
-                    })}
-                </TableBody>
+                getAnnualSummaryRows()
+                // <TableBody>
+                //     {roundYears.map((year) => {
+                //         return getAnnualSummaryRows(year)
+                //     })}
+                // </TableBody>
                 :
                 <TableBody>
                     {/* Summary Row */}
@@ -116,14 +131,18 @@ const GolfTable = (props) => {
                             return (
                                 <>
                                     <TableRow className={getRoundTableClassName(round, i)} key={i}>
-                                        <TableCell key={`${round.roundInfo.key}1`}><span className={round.scoring.underParRound ? "blackFont" : ""} onClick={() => handleSetActiveRounds(round.roundInfo.key)}>{activeRounds.includes(round.roundInfo.key) ? "Collapse" : "Scorecard"}</span></TableCell>
+                                        <TableCell key={`${round.roundInfo.key}1`}><span className={round.scoring.underParRound ? "blackFont" : ""} style={{ textDecoration: "underline"}} onClick={() => handleSetActiveRounds(round.roundInfo.key)}>{activeRounds.includes(round.roundInfo.key) ? "Collapse" : "Scorecard"}</span></TableCell>
 
                                         <TableCell key={`${round.roundInfo.key}2`}>{round.roundInfo.date}</TableCell>
                                         <TableCell key={`${round.roundInfo.key}3`}>
                                             {/* Popup to display some course info? */}
                                             {/* <Popover
                                                 trigger={<span> */}
+                                                <div className="flexRow alignCenter">
+
+                                                    {internationalFlag(round)}
                                                     {round.roundInfo.course}
+                                                </div>
                                                     {/* </span>}
                                             > */}
                                                 {/* Course Info */}

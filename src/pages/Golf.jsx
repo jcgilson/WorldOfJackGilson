@@ -8,7 +8,7 @@ import ScorecardEntry from '../components/ScorecardEntry';
 import ScorecardHelpModal from '../components/ScorecardHelpModal';
 // MUI
 import {
-    TableRow, TableCell, FormControl, CircularProgress, InputLabel, MenuItem, Select,
+    TableBody, TableRow, TableCell, FormControl, CircularProgress, InputLabel, MenuItem, Select,
     ListItemText, Checkbox, Modal, Paper, Card, CardContent, Snackbar
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
@@ -162,6 +162,15 @@ const Golf = () => {
     useEffect(() => {
         changeSortMethod("sequence", "roundInfo");
         setIsLoading(false);
+
+        // Set available round years (used for Annual Summaries)
+        let tempRoundYears = [];
+        for (let round of allRounds) {
+            let splitRoundDate = round.roundInfo.date.split("/");
+            let roundYear = splitRoundDate[2];
+            if (!tempRoundYears.includes(roundYear)) tempRoundYears.push(roundYear);
+        }
+        setRoundYears(tempRoundYears);
     }, [allRounds]);
     
     const fileInputRef = useRef(null);
@@ -292,11 +301,11 @@ const Golf = () => {
      * puttingData 
      * 
      * Called by:
-     * displayedRoundsToggle - User toggling between displayedRounds and allRounds
+     * displayedRoundsToggle - User toggling between displayedRounds and allRounds OR allRounds being updated
      */
     useEffect(() => {
         getPuttingData()
-    }, [displayedRoundsToggle]);
+    }, [allRounds, displayedRoundsToggle]);
 
     // Summary round for displayed rounds, function handles fetching new values when filters/date field is edited
     const handleUpdateSummaryRow = (summaryRowRounds) => {
@@ -548,6 +557,13 @@ const Golf = () => {
     }
 
     const changeSortMethod = (method, readingObjectPath, preventReorderingUponScorecardSubmission = false) => {
+        // if (filters.includes("Annual Summaries")) {
+        //     setTableSort({ method: "year", order: "ascending" });
+        //     setFilters(["Annual Summaries"])
+        // }
+        // should not need to control this here, can likely just sort year directly
+
+
         let newSortOrder = "ascending";
         if (method === tableSort.method && !preventReorderingUponScorecardSubmission) {
             if (tableSort.order === "ascending") {
@@ -808,12 +824,28 @@ const Golf = () => {
 
     const handleFilterChange = (event: SelectChangeEvent<typeof filters>) => {
         const { target: { value } } = event;
-        setFilters(typeof value === 'string' ? value.split(',') : value);
+        // When "Annnual Summaries" is selected
+        if (value.includes("Annual Summaries")) {
+            // If currently being added, should remove all other filters
+            if (!filters.includes("Annual Summaries")) {
+                setFilters(["Annual Summaries"]);
+                changeSortMethod("sequence", "roundInfo");
+            } else {
+                // When Annual Summaries was already selected and a new filter is being applied, remove "Annual Summaries"
+                const tempFilters = [];
+                for (let i of value) {
+                    if (!(i === "Annual Summaries")) tempFilters.push(i);
+                }
+                setFilters(tempFilters);
+            }
+        } else {
+            setFilters(value);
+        }
     };
 
     const handleCourseTourChange = (event: SelectChangeEvent<typeof courseTours>) => {
         const { target: { value } } = event;
-        setCourseTours(typeof value === 'string' ? value.split(',') : value);
+        setCourseTours(value);
     };
 
     let getRoundTableClassName = (round, i) => {
@@ -824,103 +856,87 @@ const Golf = () => {
         return className;
     }
 
-    // Sand count for displayed rounds
-    let totalHoleCount = 0;
-    let sandCount = 0;
-    let sandOnePuttCount = 0;
-    let sandBirdieCount = 0;
-    let sandParCount = 0;
-    let sandBogeyCount = 0;
-    let sandDoubleCount = 0;
-    let sandTripleCount = 0;
-    let sandQuadCount = 0;
-    // if ((displayedRounds.length > 0) && (Object.keys(activeScorecardEntryCourseInfo).length !== 0)) {
-    //     for (let round of displayedRounds) {
-    //         // if (!round.nonGhinRounds.boozeRound) {
-    //             for (let hole = 1; hole <= 18; hole++) {
-    //                 if (round[`hole${hole}`]) totalHoleCount++;
-    //                 if (round[`hole${hole}`] && round[`hole${hole}`].notes) {
-    //                     // console.log("round[`hole${hole}`]",round[`hole${hole}`])
-    //                     const holeNotes = round[`hole${hole}`].notes
-    //                     // console.log("holeNotes",round.roundInfo.key, round.roundInfo.date, hole, holeNotes)
-    //                     if (holeNotes && holeNotes.includes("S")) {
-    //                         sandCount++;
-    //                         if (round[`hole${hole}`].putts == 1) {
-    //                             sandOnePuttCount++
-    //                         }
-    //                         if (activeScorecardEntryCourseInfo[`hole${hole}`].par === (round[`hole${hole}`].score + 1)) sandBirdieCount++;
-    //                         if (activeScorecardEntryCourseInfo[`hole${hole}`].par === (round[`hole${hole}`].score)) sandParCount++;
-    //                         if (activeScorecardEntryCourseInfo[`hole${hole}`].par === (round[`hole${hole}`].score - 1)) sandBogeyCount++;
-    //                         if (activeScorecardEntryCourseInfo[`hole${hole}`].par === (round[`hole${hole}`].score - 2)) sandDoubleCount++;
-    //                         if (activeScorecardEntryCourseInfo[`hole${hole}`].par === (round[`hole${hole}`].score - 3)) sandTripleCount++;
-    //                         if (activeScorecardEntryCourseInfo[`hole${hole}`].par === (round[`hole${hole}`].score - 4)) sandQuadCount++;
-    //                     }
-    //                 }
-    //             }
-    //         // }
-    //     }
-
-    //     // console.log(
-    //     //     "\nsandCount",sandCount, "\n",
-    //     //     "sandOnePuttCount", sandOnePuttCount, "\n\n",
-    //     //     "sandParCount", sandParCount, "\n",
-    //     //     "sandBogeyCount", sandBogeyCount, "\n",
-    //     //     "sandDoubleCount", sandDoubleCount, "\n",
-    //     //     "sandTripleCount", sandTripleCount, "\n",
-    //     //     "sandQuadCount", sandQuadCount, "\n\n",
-    //     // )
-    //     // console.log("totalHoleCount",totalHoleCount, `${Math.floor(totalHoleCount/18)} rounds of 18 and ${Math.round((totalHoleCount/18 - Math.floor(totalHoleCount/18)) * 18)} holes`)
-
-    // }
-
-    const getAnnualSummaryRows = (year,) => {
-        let tempSummaryRounds = [];
+    const getAnnualSummaryRows = () => {
+        let tempSummaries = []
+        for (let year of roundYears) {
+            tempSummaries.push({
+                year: year,
+                yearDisplay: `20${year}`,
+                sequence: parseInt(year),
+                rounds: 0,
+                uniqueCourses: [],
+                tempDisplayedHoles: 0,
+                tempDisplayedScoringTally: 0,
+                tempDisplayedPutts: 0,
+                tempDisplayed3Putts: 0,
+                tempDisplayedF: 0,
+                tempPar3: 0,
+                tempDisplayedG: 0,
+                tempDisplayedFPM: 0,
+                tempDisplayedBirdies: 0,
+                tempDisplayedBogeyPlus: 0,
+            });
+        }
         allRounds.forEach((round) => {
             const roundYear = round.roundInfo.date.split("/");
-            if (round.roundInfo.fullFront9 && round.roundInfo.fullBack9 && !round.nonGhinRounds.boozeRound && !round.nonGhinRounds.scrambleRound && (roundYear[2] === year)) tempSummaryRounds.push(round);
+            if (round.roundInfo.fullFront9 && round.roundInfo.fullBack9 && !round.nonGhinRounds.boozeRound && !round.nonGhinRounds.scrambleRound) {
+                const year = tempSummaries.findIndex(summaryYear => summaryYear.year === roundYear[2]);
+                tempSummaries[year] = {
+                    ...tempSummaries[year],
+                    rounds: tempSummaries[year].rounds + 1,
+                    uniqueCourses: !tempSummaries[year].uniqueCourses.includes(round.roundInfo.courseKey) ? [...tempSummaries[year].uniqueCourses, round.roundInfo.courseKey] : tempSummaries[year].uniqueCourses,
+                    tempDisplayedHoles: tempSummaries[year].tempDisplayedHoles + round.roundInfo.numHoles,
+                    tempDisplayedScoringTally: tempSummaries[year].tempDisplayedScoringTally + round.scoring.scoreToPar,
+                    tempDisplayedPutts: tempSummaries[year].tempDisplayedPutts + round.putting.putts,
+                    tempDisplayed3Putts: tempSummaries[year].tempDisplayed3Putts + round.putting.num3Putts,
+                    tempDisplayedF: tempSummaries[year].tempDisplayedF + round.fairways.f,
+                    tempPar3: tempSummaries[year].tempPar3 + round.fairways.na,
+                    tempDisplayedG: tempSummaries[year].tempDisplayedG + round.greens.g,
+                    tempDisplayedFPM: tempSummaries[year].tempDisplayedFPM + round.putting.fpmTotal,
+                    tempDisplayedBirdies: tempSummaries[year].tempDisplayedBirdies + round.scoring.numBirdies,
+                    tempDisplayedBogeyPlus: tempSummaries[year].tempDisplayedBogeyPlus + round.scoring.numBogeyPlus
+                }
+            }
         });
-
-        let uniqueCourses = [];
-        let tempDisplayedHoles = 0;
-        let tempDisplayedScoringTally = 0;
-        let tempDisplayedPutts = 0;
-        let tempDisplayed3Putts = 0;
-        let tempDisplayedF = 0;
-        let tempPar3 = 0
-        let tempDisplayedG = 0;
-        let tempDisplayedFPM = 0;
-        let tempDisplayedBirdies = 0;
-        let tempDisplayedBogeyPlus = 0;
-
-        for (let round of tempSummaryRounds) {
-            if (!uniqueCourses.includes(round.roundInfo.courseKey)) uniqueCourses.push(round.roundInfo.courseKey);
-            tempDisplayedHoles = tempDisplayedHoles + round.roundInfo.numHoles;
-            tempDisplayedScoringTally = tempDisplayedScoringTally + round.scoring.scoreToPar;
-            tempDisplayedPutts = tempDisplayedPutts + round.putting.putts;
-            tempDisplayed3Putts = tempDisplayed3Putts + round.putting.num3Putts;
-            tempDisplayedF = tempDisplayedF + round.fairways.f;
-            tempPar3 = tempPar3 + round.fairways.na;
-            tempDisplayedG = tempDisplayedG + round.greens.g;
-            tempDisplayedFPM = tempDisplayedFPM + round.putting.fpmTotal;
-            tempDisplayedBirdies = tempDisplayedBirdies + round.scoring.numBirdies;
-            tempDisplayedBogeyPlus = tempDisplayedBogeyPlus + round.numBogeyPlus;
+        
+        // Apply sort method for existing table headers
+        for (let i = 0; i < tempSummaries.length; i++) {
+            tempSummaries[i] = {
+                ...tempSummaries[i],
+                scoreToPar: tempSummaries[i].tempDisplayedScoringTally / tempSummaries[i].tempDisplayedHoles,
+                course: tempSummaries[i].uniqueCourses.length,
+                putts: tempSummaries[i].tempDisplayedPutts / tempSummaries[i].tempDisplayedHoles,
+                f: tempSummaries[i].tempDisplayedF / (tempSummaries[i].tempDisplayedHoles - tempSummaries[i].tempPar3),
+                g: tempSummaries[i].tempDisplayedG / tempSummaries[i].tempDisplayedHoles,
+                puttLengthTotal: tempSummaries[i].tempDisplayedFPM / tempSummaries[i].tempDisplayedHoles,
+                numBirdies: tempSummaries[i].tempDisplayedBirdies / tempSummaries[i].tempDisplayedHoles,
+                numBogeyPlus: tempSummaries[i].tempDisplayedBogeyPlus / tempSummaries[i].tempDisplayedHoles
+            }
         }
+        tempSummaries = tableSort.order === "ascending"
+            ? tempSummaries.sort(function(a,b) { return (a[tableSort.method] < b[tableSort.method]) ? 1 : ((b[tableSort.method] < a[tableSort.method]) ? -1 : 0); })
+            : tempSummaries.sort(function(a,b) { return (a[tableSort.method] < b[tableSort.method]) ? -1 : ((b[tableSort.method] < a[tableSort.method]) ? 1 : 0);} )
 
-        // console.log("index",index) // TODO: index not passing correctly, logging console error
         return (
-            <TableRow key={year}>
-                <TableCell key={1}>20{year} Rounds: <b>{tempSummaryRounds.length}</b></TableCell>
-                <TableCell key={2}>Total Holes: <b>{tempDisplayedHoles}</b></TableCell>
-                <TableCell key={3}>Total Courses: <b>{uniqueCourses.length}</b></TableCell>
-                <TableCell key={4}><b>{`${(72 + tempDisplayedScoringTally / tempDisplayedHoles * 18).toFixed(2)} (+${(tempDisplayedScoringTally / tempDisplayedHoles * 18).toFixed(2)})`}</b></TableCell>
-                <TableCell key={5}><b>{`${(tempDisplayedPutts / tempDisplayedHoles * 18).toFixed(2)} (${(tempDisplayed3Putts / tempDisplayedHoles * 18).toFixed(2)}, ${(tempDisplayed3Putts / tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
-                <TableCell key={6}><b>{`${(tempDisplayedF / (tempDisplayedHoles - tempPar3) * 14).toFixed(2)} (${(tempDisplayedF / (tempDisplayedHoles - tempPar3) * 100).toFixed(0)}%)`}</b></TableCell>
-                <TableCell key={7}><b>{`${(tempDisplayedG / tempDisplayedHoles * 18).toFixed(2)} (${(tempDisplayedG / tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
-                <TableCell key={8}><b>{(tempDisplayedFPM / tempDisplayedHoles * 18).toFixed(2)}</b></TableCell>
-                <TableCell key={9}><b>{`${(tempDisplayedBirdies / tempDisplayedHoles * 18).toFixed(2)} (${(tempDisplayedBirdies / tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
-                <TableCell key={10}><b>{`${(tempDisplayedBogeyPlus / tempDisplayedHoles * 18).toFixed(2)} (${(tempDisplayedBogeyPlus / tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
-            </TableRow>
-        );
+            <TableBody>
+                {tempSummaries.map((year) => {
+                    return (
+                        <TableRow key={year.year}>
+                            <TableCell key={1}>{year.yearDisplay} Rounds: <b>{year.rounds}</b></TableCell>
+                            <TableCell key={2}>Total Holes: <b>{year.tempDisplayedHoles}</b></TableCell>
+                            <TableCell key={3}>Total Courses: <b>{year.uniqueCourses.length}</b></TableCell>
+                            <TableCell key={4}><b>{`${(72 + year.scoreToPar).toFixed(2)} (+${(year.scoreToPar).toFixed(2)})`}</b></TableCell>
+                            <TableCell key={5}><b>{`${(year.tempDisplayedPutts / year.tempDisplayedHoles * 18).toFixed(2)} (${(year.tempDisplayed3Putts / year.tempDisplayedHoles * 18).toFixed(2)}, ${(year.tempDisplayed3Putts / year.tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
+                            <TableCell key={6}><b>{`${(year.tempDisplayedF / (year.tempDisplayedHoles - year.tempPar3) * 14).toFixed(2)} (${(year.tempDisplayedF / (year.tempDisplayedHoles - year.tempPar3) * 100).toFixed(0)}%)`}</b></TableCell>
+                            <TableCell key={7}><b>{`${(year.tempDisplayedG / year.tempDisplayedHoles * 18).toFixed(2)} (${(year.tempDisplayedG / year.tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
+                            <TableCell key={8}><b>{(year.tempDisplayedFPM / year.tempDisplayedHoles * 18).toFixed(2)}</b></TableCell>
+                            <TableCell key={9}><b>{`${(year.tempDisplayedBirdies / year.tempDisplayedHoles * 18).toFixed(2)} (${(year.tempDisplayedBirdies / year.tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
+                            <TableCell key={10}><b>{`${(year.tempDisplayedBogeyPlus / year.tempDisplayedHoles * 18).toFixed(2)} (${(year.tempDisplayedBogeyPlus / year.tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
+                        </TableRow>
+                    )
+                })}
+            </TableBody>
+        )
     }
 
     {/*
@@ -1235,23 +1251,7 @@ const Golf = () => {
                 </div>
             }
 
-            {/* 
-                Historic Metrics 
-                Metrics of all years prior to keeping detailed metrics
-            */}
-            {!displayUploadButton && activePage === "Historic Metrics" &&
-                <div className="flexFlowRowWrap justifyCenter width80Percent marginTopMassive">
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Hole Count:</b> <p className="justifyCenter width100Percent">{totalHoleCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand Shots:</b> <p className="justifyCenter width100Percent">{sandCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand One Putts:</b> <p className="justifyCenter width100Percent">{sandOnePuttCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand Birdies:</b> <p className="justifyCenter width100Percent">{sandBirdieCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand Pars:</b> <p className="justifyCenter width100Percent">{sandDoubleCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand Bogeys:</b> <p className="justifyCenter width100Percent">{sandTripleCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand Doubles:</b> <p className="justifyCenter width100Percent">{sandDoubleCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand Triples:</b> <p className="justifyCenter width100Percent">{sandTripleCount}</p></div>
-                    <div className="flexColumn justifyCenter setWidth200px marginTopMedium"><b className="width100Percent justifyCenter">Total Sand Quads:</b> <p className="justifyCenter width100Percent">{sandQuadCount}</p></div>
-                </div>
-            }
+
 
             {/*
                 COMPONENT: Golf Upload Button
