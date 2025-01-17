@@ -1,0 +1,16 @@
+.pool .MuiSnackbar-root .MuiSnackbarContent-action {
+    padding-left: 0px !important;
+    max-width: 32px !important;
+}
+.pool .MuiSnackbar-root .MuiSnackbarContent-action button {
+    display: flex;
+    justify-content: flex-start;
+}
+.pool .MuiSnackbar-root .MuiSnackbarContent-action button:hover {
+    color: #CCCCCC !important;
+    background: none !important;
+}
+
+.MuiSelect-select .hidePushPin svg {
+    display: none !important;
+}

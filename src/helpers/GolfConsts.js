@@ -1,3 +1,4 @@
+// Course tour holes
 import gileadHighlandsHole1 from "../images/gileadHighlandsHole1.png";
 import gileadHighlandsHole2 from "../images/gileadHighlandsHole2.png";
 import gileadHighlandsHole3 from "../images/gileadHighlandsHole3.png";
@@ -52,6 +53,11 @@ import southSuburbanHole15 from "../images/southSuburbanHole15.png";
 import southSuburbanHole16 from "../images/southSuburbanHole16.png";
 import southSuburbanHole17 from "../images/southSuburbanHole17.png";
 import southSuburbanHole18 from "../images/southSuburbanHole18.png";
+
+// International Flags
+import ireland from "../images/ireland.png";
+import iceland from "../images/iceland.png";
+
 
 export const imageSourceMappings = {
     gileadHighlandsHole1: gileadHighlandsHole1,
@@ -114,10 +120,17 @@ export const pageLinks = [
     "Golf Rounds",
     "Metrics",
     "Course Tour",
-    "Historic Rounds",
-    "Historic Metrics",
+    // "Historic Rounds",
+    // "Historic Metrics",
     "Enter Scorecard"
-]
+];
+
+// Wikipedia contains flag image downloads
+// Example: https://commons.wikimedia.org/wiki/File:Flag_of_Ireland.svg
+const internationalFlags = {
+    ireland: ireland,
+    iceland: iceland
+}
 
 // Dropdown options for scorecard entry
 export const scorecardRoundConfigConsts = [
@@ -353,7 +366,8 @@ export const courses = [
         sequence: 35,
         displayName: "Old Head",
         courseKey: "oldHead",
-        scoreCardHoleAbbreviation: ""
+        scoreCardHoleAbbreviation: "",
+        internationalFlag: internationalFlags.ireland
     },
     {
         sequence: 36,
@@ -419,7 +433,8 @@ export const courses = [
         sequence: 46,
         displayName: "Mosfellsbaer",
         courseKey: "mosfellsbaer",
-        scoreCardHoleAbbreviation: ""
+        scoreCardHoleAbbreviation: "",
+        internationalFlag: internationalFlags.iceland
     },
     {
         sequence: 47,

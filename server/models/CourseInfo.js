@@ -1,4 +1,3 @@
-// models/GolfRounds.js
 const mongoose = require('mongoose');
 
 const courseInfoSchema = new mongoose.Schema({

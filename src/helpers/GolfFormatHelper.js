@@ -5,7 +5,8 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import {
     calculateConsecutiveOnePutts, calculateMostPutts, calculateLeastPutts, calculateLargestScoreDisparity,
     calculateSingleHoleMetrics, calculateCourseMetrics, calculateLostBallMetrics, calculateDrivingMetrics,
-    calculateApproachMetrics, calculatePuttingMetrics, calculateScoringAverageMetrics
+    calculateApproachMetrics, calculatePuttingMetrics, calculateSandMetrics, calculateBrMetrics,
+    calculateScoringAverageMetrics
 } from './GolfMetricHelper';
 // Consts
 import { imageSourceMappings } from "./GolfConsts";
@@ -976,44 +977,48 @@ export const createLostBallsTable = (lostBallMetrics) => {
 }
 
 export const createDrivingTable = (drivingMetrics) => {
-    const distances = Object.keys(drivingMetrics).sort(function(a,b) { return ( a.lowerBound > b.lowerBound ? 1 : a.lowerBound < b.lowerBound ? -1 : 0); });
+    // const distances = Object.keys(drivingMetrics).sort(function(a,b) { return ( a.lowerBound > b.lowerBound ? 1 : a.lowerBound < b.lowerBound ? -1 : 0); });
+
+    // are these distances actually correct? Just a ton of lay ups?
+
+    const getValueAsPercentOfTotal = (value, total) => {
+        return `${value} (${(value / total * 100).toFixed(0)})`;
+    }
 
     return (
         <Table className="golfTable subTable backgroundColorWhite borderRadiusSmall">
             <TableHead>
                 <TableRow>
-                    <TableCell key={1} className="golfTableBorderRightSmall"><b>Distance (yards)</b></TableCell>
+                    <TableCell key={1} className="golfTableBorderRightSmall"><b>Distance </b>(yards)</TableCell>
                     {/* <TableCell key={2} className="golfTableBorderRightSmall textCenter flexRow alignCenter"><b>Miscue</b><Tooltip disableFocusListener disableTouchListener title="Top/Layup/Long" placement="top" className="alignCenter"><InfoIcon fontSize="small"/></Tooltip></TableCell> Could condense title to have parentheses for GIR % */}
-                    <TableCell key={3} className="golfTableBorderRightSmall textCenter"><b>Left</b></TableCell>
+                    <TableCell key={3} className="golfTableBorderRightSmall textCenter"><b>Left</b> - Add tooltip</TableCell> {/* Tooltip: percent value represents % of GIR from given Fairway positioning */}
                     <TableCell key={4} className="golfTableBorderRightSmall textCenter" style={{backgroundColor: "#00440022"}}><b>FIR</b></TableCell>
                     <TableCell key={5} className="golfTableBorderRightSmall textCenter"><b>Right</b></TableCell> {/* Add right border */}
                     {/* <TableCell key={6} className="golfTableBorderRightSmall textCenter"><b>Miscue to GIR %</b></TableCell> */}
                     <TableCell key={7} className="golfTableBorderRightSmall textCenter"><b>Left to GIR</b></TableCell>
                     <TableCell key={8} className="golfTableBorderRightSmall textCenter" style={{backgroundColor: "#00440022"}}><b>FIR to GIR</b></TableCell>
                     <TableCell key={9} className="golfTableBorderRightSmall textCenter"><b>Right to GIR</b></TableCell> {/* Add right border */}
-                    <TableCell key={10} className="golfTableBorderRightSmall textCenter"><b>Accuracy %</b></TableCell>
-                    <TableCell key={11} className="golfTableBorderRightSmall textCenter"><b>Distribution %</b></TableCell>
-                    <TableCell key={12} className="golfTableBorderRightSmall textCenter"><b>Total</b></TableCell>
+                    {/* <TableCell key={10} className="golfTableBorderRightSmall textCenter"><b>Accuracy %</b></TableCell> */}
+    {/* Add cell for average driving distance for L, F, R? */}
+                    <TableCell key={11} className="golfTableBorderRightSmall textCenter"><b>Distribution</b> Add tooltip</TableCell> {/* Tooltip: excluding rows <200yds, show second distribution percetages in parenthesis to illustrate distribution% when a drive actually exceeds 200yds */}
+                    {/* <TableCell key={12} className="golfTableBorderRightSmall textCenter"><b>Total</b></TableCell> */}
                 </TableRow>
             </TableHead>
             <TableBody>
-                {distances.map(distance => {
+                {drivingMetrics.map(distance => {
                     return (
-                        <TableRow key={distance}>
-                            <TableCell className="golfTableBorderRightSmall"><b>{drivingMetrics[distance].customTitle || `${drivingMetrics[distance].lowerBound} - ${drivingMetrics[distance].upperBound}`}</b></TableCell>
-                            {/* <TableCell className="golfTableBorderRightSmall textCenter">{drivingMetrics[distance].x} ({(drivingMetrics[distance].x / drivingMetrics[distance].total * 100).toFixed(1)})</TableCell> */}
-                            <TableCell className="golfTableBorderRightSmall textCenter">{drivingMetrics[distance].l} ({(drivingMetrics[distance].l / drivingMetrics[distance].total * 100).toFixed(1)})</TableCell>
-                            <TableCell className="golfTableBorderRightSmall textCenter"style={{backgroundColor: "#00440022"}}>{drivingMetrics[distance].f} ({(drivingMetrics[distance].f / drivingMetrics[distance].total * 100).toFixed(1)})</TableCell>
-                            <TableCell className="golfTableBorderRightSmall textCenter">{drivingMetrics[distance].r} ({(drivingMetrics[distance].r / drivingMetrics[distance].total * 100).toFixed(1)})</TableCell> {/* Add right border */}
-                            {/* <TableCell className="golfTableBorderRightSmall textCenter">{drivingMetrics[distance].xGir} ({drivingMetrics[distance].x !== 0 ? (drivingMetrics[distance].xGir / drivingMetrics[distance].x * 100).toFixed(1) : "0.0"})</TableCell> Prevent NaN's when 0 xGir */}
-                            <TableCell className="golfTableBorderRightSmall textCenter">{drivingMetrics[distance].lGir} ({(drivingMetrics[distance].lGir / drivingMetrics[distance].l * 100).toFixed(1)})</TableCell>
-                            <TableCell className="golfTableBorderRightSmall textCenter"style={{backgroundColor: "#00440022"}}>{drivingMetrics[distance].fGir} ({(drivingMetrics[distance].fGir / drivingMetrics[distance].f * 100).toFixed(1)})</TableCell>
-                            <TableCell className="golfTableBorderRightSmall textCenter">{drivingMetrics[distance].rGir} ({(drivingMetrics[distance].rGir / drivingMetrics[distance].r * 100).toFixed(1)})</TableCell> {/* Add right border */}
-                            <TableCell className="golfTableBorderRightSmall textCenter">{(drivingMetrics[distance].f / drivingMetrics[distance].total * 100).toFixed(1)}</TableCell>
-                            <TableCell className="golfTableBorderRightSmall textCenter">{(drivingMetrics[distance].total / drivingMetrics.total.total * 100).toFixed(1)}</TableCell>
-                            <TableCell className="golfTableBorderRightSmall textCenter">{drivingMetrics[distance].total}</TableCell>
+                        <TableRow key={`${distance.lowerBound}To${distance.upperBound}`}>
+                            <TableCell className="golfTableBorderRightSmall"><b>{distance.customTitle || `${distance.lowerBound} - ${distance.upperBound}`}</b></TableCell>
+                            <TableCell className="golfTableBorderRightSmall textCenter">{getValueAsPercentOfTotal(distance.l, distance.total)}</TableCell>
+                            <TableCell className="golfTableBorderRightSmall textCenter" style={{backgroundColor: "#00440022"}}>{getValueAsPercentOfTotal(distance.f, distance.total)}</TableCell>
+                            <TableCell className="golfTableBorderRightSmall textCenter">{getValueAsPercentOfTotal(distance.r, distance.total)}</TableCell>
+                            <TableCell className="golfTableBorderRightSmall textCenter">{getValueAsPercentOfTotal(distance.lg, distance.l)}</TableCell>
+                            <TableCell className="golfTableBorderRightSmall textCenter" style={{backgroundColor: "#00440022"}}>{getValueAsPercentOfTotal(distance.fg, distance.f)}</TableCell>
+                            <TableCell className="golfTableBorderRightSmall textCenter">{getValueAsPercentOfTotal(distance.rg, distance.r)}</TableCell>
+                            <TableCell className="golfTableBorderRightSmall textCenter">{getValueAsPercentOfTotal(distance.total, drivingMetrics[drivingMetrics.length - 1].total)}</TableCell>
+                            {/* <TableCell className="golfTableBorderRightSmall textCenter">{getValueAsPercentOfTotal(distance.total, )}</TableCell> */}
                         </TableRow>
-                    );
+                    )
                 })}
             </TableBody>
         </Table>
@@ -1021,7 +1026,8 @@ export const createDrivingTable = (drivingMetrics) => {
 }
 
 export const createApproachTable = (approachMetrics, approachView) => {
-    const ranges = Object.keys(approachMetrics).sort(function(a,b) { return ( a.lowerBound > b.lowerBound ? 1 : a.lowerBound < b.lowerBound ? -1 : 0); });
+    console.log("approachMetrics",approachMetrics)
+    // const ranges = Object.keys(approachMetrics).sort(function(a,b) { return ( a.lowerBound > b.lowerBound ? 1 : a.lowerBound < b.lowerBound ? -1 : 0); });
 
     const formatScore = (score) => {
         if (approachView === "differential" && score !== "-") {
@@ -1049,7 +1055,7 @@ export const createApproachTable = (approachMetrics, approachView) => {
                     <TableCell key={7} colSpan={1} className="golfTableBorderRightSmall textCenter">-</TableCell>
                 </TableRow>
                 <TableRow>
-                    <TableCell key={1} className="golfTableBorderRightSmall"><p className="noPadding"><b>Distance</b></p></TableCell>
+                    <TableCell key={1} className="golfTableBorderRightSmall"><p className="noPadding"><b>Distance</b> (yds)</p></TableCell>
                     <TableCell key={1} className="golfTableBorderRightSmall textCenter"><b>Club</b></TableCell>
                     <TableCell key={2} className="golfTableBorderRightSmall textCenter"><b>L, X</b></TableCell>
                     <TableCell key={3} className="golfTableBorderRightSmall textCenter" style={{backgroundColor: "#00440022"}}>
@@ -1071,7 +1077,7 @@ export const createApproachTable = (approachMetrics, approachView) => {
                     <TableCell key={13} className="golfTableBorderRightSmall textCenter"><b>Total</b></TableCell>
                 </TableRow>
             </TableHead>
-            <TableBody>
+            {/* <TableBody>
                 {ranges.map(range => {
                     return (
                         <TableRow key={range}>
@@ -1098,7 +1104,7 @@ export const createApproachTable = (approachMetrics, approachView) => {
                         </TableRow>
                     );
                 })}
-            </TableBody>
+            </TableBody> */}
         </Table>
     )
 }
@@ -1269,6 +1275,7 @@ const createCumulativeGraphs = (displayedRounds, drivingMetrics, puttingMetrics)
 }
 
 export const createPuttingTable = (puttingMetrics) => {
+    console.log("puttingMetrics",puttingMetrics)
     const distances = Object.keys(puttingMetrics.makeByDistance).sort(
         function(a,b) {
             return (
@@ -1359,7 +1366,7 @@ const calculateCourseRecords = (courseInfo, courseMetrics) => {
 
     let tableRows = [];
 
-    console.log("courseMetrics",courseMetrics)
+    // console.log("courseMetrics",courseMetrics)
     
     Object.keys(courseMetrics).forEach(courseMetric => {
         const singleCourseInfo = courseInfo.find(info => info.courseKey === courseMetric)
@@ -1454,11 +1461,11 @@ const calculateScoringAverageTotals = (scoringAverageMetrics) => {
     };
 
     for (let category of Object.keys(scoringAverageMetrics)) {
-        console.log("\n\ncategory",category)
+        // console.log("\n\ncategory",category)
         if (category !== "eagleSummary" && category !== "par3Course" && category !== "par3All") {
             scoringAverageTotals.numHoles = scoringAverageTotals.numHoles + scoringAverageMetrics[category].numHoles;
-            console.log("scoringAverageTotals.scoreToPar",scoringAverageTotals.scoreToPar)
-            console.log("scoringAverageMetrics[category].scoreToPar",scoringAverageMetrics[category].scoreToPar)
+            // console.log("scoringAverageTotals.scoreToPar",scoringAverageTotals.scoreToPar)
+            // console.log("scoringAverageMetrics[category].scoreToPar",scoringAverageMetrics[category].scoreToPar)
             scoringAverageTotals.scoreToPar = scoringAverageTotals.scoreToPar + scoringAverageMetrics[category].scoreToPar;
             scoringAverageTotals.eagle = scoringAverageTotals.eagle + scoringAverageMetrics[category].eagle;
             scoringAverageTotals.birdie = scoringAverageTotals.birdie + scoringAverageMetrics[category].birdie;
@@ -1482,6 +1489,31 @@ const calculateScorePlot = (displayedRounds) => {
     return plotData;
 }
 
+
+
+
+
+
+    
+
+
+
+
+const getScoringAverageTableCell = (props) => {
+    return (
+        <TableCell
+            className={props.hideTableBottomBorder ? "hideTableBottomBorder" : ""}
+            key={`scoringAverageBody${props.value}1`}
+        >
+            {props.displayPlusMinusValue
+                ? `${props.value > 0 ? "+" : ""}${props.value === 0 ? 'E' : props.value}`
+                : props.value
+            }
+            {props.displayDistribution && ` (${(props.value / props.numHoles * (props.displayPlusMinusValue ? 1 : 100)).toFixed(2)})`}
+        </TableCell>
+    )
+}
+
 export const calculateStats = (courseInfo, allRounds, puttingData, displayedRounds, handicap, displayedRoundsToggle, setDisplayedRoundsToggle, approachView, setApproachView) => {
 
     const scoringAverageMetrics = calculateScoringAverageMetrics(courseInfo, displayedRoundsToggle ? displayedRounds : allRounds)
@@ -1491,17 +1523,101 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
     const drivingMetrics = calculateDrivingMetrics(courseInfo, displayedRoundsToggle ? displayedRounds : allRounds);
     const approachMetrics = calculateApproachMetrics(courseInfo, displayedRoundsToggle ? displayedRounds : allRounds);
     const puttingMetrics = calculatePuttingMetrics(puttingData, displayedRoundsToggle ? displayedRounds : allRounds);
+    const sandMetrics = calculateSandMetrics(courseInfo, displayedRoundsToggle ? displayedRounds : allRounds);
+    const brMetrics = calculateBrMetrics(courseInfo, displayedRoundsToggle ? displayedRounds : allRounds);
 
-    const sortedEagleSummary = scoringAverageMetrics.eagleSummary.sort(function(a,b) {return parseFloat(a.sequence) - parseFloat(b.sequence)})
-    console.log("sortedEagleSummary",sortedEagleSummary)
+    // const sortedEagleSummary = scoringAverageMetrics.eagleSummary.sort(function(a,b) {return parseFloat(a.sequence) - parseFloat(b.sequence)})
 
-    console.log("scoringAverageMetrics",scoringAverageMetrics)
-    const scoringAverageTotals = calculateScoringAverageTotals(scoringAverageMetrics);
+    // const scoringAverageTotals = calculateScoringAverageTotals(scoringAverageMetrics);
 
     const scorePlot = calculateScorePlot(displayedRoundsToggle ? displayedRounds : allRounds);
 
-    let alreadyDisplayed = [];
-                    
+    let totalScoreToPar = scoringAverageMetrics[scoringAverageMetrics.length - 1].scoreToPar;
+    let totalHoles = scoringAverageMetrics[scoringAverageMetrics.length - 1].numHoles;
+
+    console.log("sandMetrics",sandMetrics)
+   
+    // Sand
+    let sandHoleCount = sandMetrics.sandCount;
+    let sandHoleScoreToPar = sandMetrics.totalScoreToPar;
+    let nonSandHoleCount = totalHoles - sandHoleCount;
+    let nonSandHoleScoreToPar = totalScoreToPar - sandHoleScoreToPar;
+    let nonSandHoleScoringAverage = (nonSandHoleScoreToPar / nonSandHoleCount).toFixed(2);
+    let sandHoleScoringAverage = (sandHoleScoreToPar / sandHoleCount).toFixed(2);
+    let sandHolesPerRound = (sandHoleCount / totalHoles * 18).toFixed(2);
+    let strokeAverageAddedForSandHoles = (sandHoleScoringAverage - nonSandHoleScoringAverage).toFixed(2);
+    let strokeAverageAddedForSandHolesPerRound = (sandHolesPerRound * strokeAverageAddedForSandHoles).toFixed(2);
+    let totalStrokesAddedForSandHoles = sandHoleCount * strokeAverageAddedForSandHoles;
+    let percentOfStrokesAddedToParForSandHoles = (totalStrokesAddedForSandHoles / totalScoreToPar * 100).toFixed(0);
+    // Sand hole putting
+    let totalPuttsForSandHoles = 0;
+    for (let metric of sandMetrics.putting) {
+        totalPuttsForSandHoles = totalPuttsForSandHoles + (metric.count * metric.numPutts);
+    }
+    let averagePuttsForSandHoles = (totalPuttsForSandHoles / sandHoleCount).toFixed(2);
+    // Non sand hole putting
+    let totalPuttsForNonSandHoles = 0;
+    for (let metric of sandMetrics.nonSandPutting) {
+        totalPuttsForNonSandHoles = totalPuttsForNonSandHoles + (metric.count * metric.numPutts);
+    }
+    let averagePuttsForNonSandHoles = (totalPuttsForNonSandHoles / nonSandHoleCount).toFixed(2);
+
+    // BR
+    let brHoleCount = brMetrics.brCount;
+    let brHoleScoreToPar = brMetrics.totalScoreToPar;
+    let nonBrHoleCount = totalHoles - brHoleCount;
+    let nonBrHoleScoreToPar = totalScoreToPar - brHoleScoreToPar;
+    let nonBrHoleScoringAverage = (nonBrHoleScoreToPar / nonBrHoleCount).toFixed(2);
+    let brHoleScoringAverage = (brHoleScoreToPar / brHoleCount).toFixed(2);
+    let brHolesPerRound = (brHoleCount / totalHoles * 18).toFixed(2);
+    let strokeAverageAddedForBrHoles = (brHoleScoringAverage - nonBrHoleScoringAverage).toFixed(2);
+    let strokeAverageAddedForBrHolesPerRound = (brHolesPerRound * strokeAverageAddedForBrHoles).toFixed(2);
+    let totalStrokesAddedForBrHoles = brHoleCount * strokeAverageAddedForBrHoles;
+    let percentOfStrokesAddedToParForBrHoles = (totalStrokesAddedForBrHoles / totalScoreToPar * 100).toFixed(0);
+    // BR putting
+    let totalPuttsForBrHoles = 0;
+    for (let metric of brMetrics.putting) {
+        totalPuttsForBrHoles = totalPuttsForBrHoles + (metric.count * metric.numPutts);
+    }
+    const averagePuttsForBrHoles = (totalPuttsForBrHoles / brHoleCount).toFixed(2);
+    // Non BR putting
+    let totalPuttsForNonBrHoles = 0;
+    for (let metric of brMetrics.nonBrPutting) {
+        totalPuttsForNonBrHoles = totalPuttsForNonBrHoles + (metric.count * metric.numPutts);
+    }
+    const averagePuttsForNonBrHoles = (totalPuttsForNonBrHoles / nonBrHoleCount).toFixed(2);
+
+
+    // Driving
+    // let lDrivingDtg = 0;
+    // let rDrivingDtg = 0;
+    // let fDrivingDtg = 0;
+
+    // let lDrivingTotal = 0;
+    // let rDrivingTotal = 0;
+    // let fDrivingTotal = 0;
+    // console.log("lDrivingDtg",lDrivingDtg)
+    // console.log("lDrivingTotal",lDrivingTotal)
+
+    // for (let distance of drivingMetrics) {
+    //     lDrivingDtg = lDrivingDtg + distance.l;
+    //     rDrivingDtg = rDrivingDtg + distance.r;
+    //     fDrivingDtg = fDrivingDtg + distance.f;
+    //     lDrivingTotal = lDrivingTotal + distance.lTotalDtg;
+    //     rDrivingTotal = rDrivingTotal + distance.rTotalDtg;
+    //     fDrivingTotal = fDrivingTotal + distance.fTotalDtg;
+    // }
+
+    const lDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].lDrivingDistance / drivingMetrics[drivingMetrics.length - 1].l).toFixed(0);
+    const rDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].rDrivingDistance / drivingMetrics[drivingMetrics.length - 1].r).toFixed(0);
+    const fDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].fDrivingDistance / drivingMetrics[drivingMetrics.length - 1].f).toFixed(0);
+    const lgDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].lgDrivingDistance / drivingMetrics[drivingMetrics.length - 1].lg).toFixed(0);
+    const rgDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].rgDrivingDistance / drivingMetrics[drivingMetrics.length - 1].rg).toFixed(0);
+    const fgDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].fgDrivingDistance / drivingMetrics[drivingMetrics.length - 1].fg).toFixed(0);
+
+
+    console.log("lostBallMetrics",lostBallMetrics)
+                        
     return (
         <>
             {/* Toggle All or Displayed rounds */}
@@ -1522,18 +1638,6 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
 
             {/* Handicap Metrics */}
             <h1 className="marginTopExtraLarge marginBottomMedium">Handicap: {handicap < 0 ? `+${Math.abs(handicap)}` : handicap}</h1>
-            {/* <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightSmall">Anderson Glen -</h3>
-                <h3 className="strongFont">Front 9: ({handicapMetrics.andersonGlen.f9}), Back 9: ({handicapMetrics.andersonGlen.b9}), Total: ({handicapMetrics.andersonGlen.total})</h3>
-            </div>
-            <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightSmall">Gilead Highlands -</h3>
-                <h3 className="strongFont">Front 9: ({handicapMetrics.gileadHighlands.f9}), Back 9: ({handicapMetrics.gileadHighlands.b9}), Total: ({handicapMetrics.gileadHighlands.total})</h3>
-            </div> */}
-            {/* <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightSmall">Overall -</h3>
-                <h3 className="strongFont">{handicap}</h3>
-            </div> */}
             <a className="largeFont textDecoration flexRow" target="_blank" href="https://www.ghin.com/golfer-lookup/golfer/53616c7465645f5fb1bfd60c7a95cfbe55d98b538abde9084b6424809c6ac4e7/club/54858"><h2>GHIN Profile</h2><LaunchIcon fontSize="small" className="marginLeftSmall"/></a>
             {/* <br/>
             <small className="marginTopMedium">*Based on best 8 rounds of last 20 full rounds</small> */}
@@ -1542,7 +1646,7 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
             <Table style={{ width: "80vw" }} className="golfTable marginTopMassive">
                 <TableHead>
                     <TableRow>
-                        <TableCell key="scoringAverageHeader1" className="noPaddingLeft"><h1>Scoring averages</h1></TableCell>
+                        <TableCell key="scoringAverageHeader1" className="noPaddingLeft"><h1>Scoring Averages</h1></TableCell>
                         <TableCell key="scoringAverageHeader2"><h1>#Holes</h1></TableCell>
                         <TableCell key="scoringAverageHeader3"><h1>+/-</h1></TableCell>
                         <TableCell key="scoringAverageHeader4"><h1>Eagle</h1></TableCell>
@@ -1556,77 +1660,171 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {Object.keys(scoringAverageMetrics).map((category) => {
-                        if (category !== "par3Course" && category !== "par3All" && category !== "eagleSummary" && !alreadyDisplayed.includes(category)) {
-                            alreadyDisplayed = [...alreadyDisplayed, category]
-                            console.log("alreadyDisplayed",alreadyDisplayed)
-
-                            return (
-                                <TableRow key={category}>
-                                    <TableCell key={`${scoringAverageMetrics[category]}1`} className="noPaddingLeft">{scoringAverageMetrics[category].header}</TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}2`}>{scoringAverageMetrics[category].numHoles}</TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}3`}>{(scoringAverageMetrics[category].scoreToPar > 0) ? "+" : ""}{scoringAverageMetrics[category].scoreToPar} <small>({(((scoringAverageMetrics[category].scoreToPar / scoringAverageMetrics[category].numHoles) + (scoringAverageMetrics[category].header.includes(3) ? 3 : scoringAverageMetrics[category].header.includes(4) ? 4 : 5)).toFixed(2))})</small></TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}4`}>{scoringAverageMetrics[category].eagle} <small>({(scoringAverageMetrics[category].eagle / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small></TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}5`}>{scoringAverageMetrics[category].birdie} <small>({(scoringAverageMetrics[category].birdie / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small></TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}6`}>{scoringAverageMetrics[category].par} <small>({(scoringAverageMetrics[category].par / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small></TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}7`}>{scoringAverageMetrics[category].bogey} <small>({(scoringAverageMetrics[category].bogey / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small></TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}8`}>{scoringAverageMetrics[category].double} {scoringAverageTotals.double !== 0 && <small>({(scoringAverageMetrics[category].double / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}9`}>{scoringAverageMetrics[category].triple} {scoringAverageTotals.triple !== 0 && <small>({(scoringAverageMetrics[category].triple / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}10`}>{scoringAverageMetrics[category].quad} {scoringAverageTotals.quad !== 0 && <small>({(scoringAverageMetrics[category].quad / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                                    <TableCell key={`${scoringAverageMetrics[category]}11`}>{scoringAverageMetrics[category].threePutts} {scoringAverageTotals.threePutts !== 0 && <small>({(scoringAverageMetrics[category].threePutts / scoringAverageMetrics[category].numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                                </TableRow>
-                            );
-                        }
+                    {scoringAverageMetrics.map(scoringAverage => {
+                        return (
+                            <TableRow key={`scoringAverage${scoringAverage.header}`}>
+                                 {/* hideTableBottomBorder: scoringAverage.header === "Total", */}
+                                {[
+                                    {value: scoringAverage.header },
+                                    {value: scoringAverage.numHoles },
+                                    {value: scoringAverage.scoreToPar, displayDistribution: true, numHoles: scoringAverage.numHoles, displayPlusMinusValue: true },
+                                    {value: scoringAverage.scoring.eagle, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                    {value: scoringAverage.scoring.birdie, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                    {value: scoringAverage.scoring.par, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                    {value: scoringAverage.scoring.bogey, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                    {value: scoringAverage.scoring.double, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                    {value: scoringAverage.scoring.triple, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                    {value: scoringAverage.scoring.quad, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                    {value: scoringAverage.threePutts, displayDistribution: true, numHoles: scoringAverage.numHoles },
+                                ].map(row => {
+                                    return getScoringAverageTableCell(row) 
+                                })}
+                            </TableRow>
+                        )
                     })}
-                    {/* Summary Row */}
-                    <TableRow key="scoringAverageMetricsTotalRow" className="hideTableBottomBorderLastChildCell">
-                        <TableCell key="scoringAverageMetricsTotal1" className="noPaddingLeft">Total</TableCell>
-                        <TableCell key="scoringAverageMetricsTotal2">{scoringAverageTotals.numHoles}</TableCell>
-                        <TableCell key="scoringAverageMetricsTotal3">{scoringAverageTotals.scoreToPar > 0 ? "+" : ""}{scoringAverageTotals.scoreToPar} <small>({(scoringAverageTotals.scoreToPar / scoringAverageTotals.numHoles).toFixed(2)})</small></TableCell>
-                        <TableCell key="scoringAverageMetricsTotal4">{scoringAverageTotals.eagle} <small>({(scoringAverageTotals.eagle / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small></TableCell>
-                        <TableCell key="scoringAverageMetricsTotal5">{scoringAverageTotals.birdie} <small>({(scoringAverageTotals.birdie / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small></TableCell>
-                        <TableCell key="scoringAverageMetricsTotal6">{scoringAverageTotals.par} <small>({(scoringAverageTotals.par / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small></TableCell>
-                        <TableCell key="scoringAverageMetricsTotal7">{scoringAverageTotals.bogey} <small>({(scoringAverageTotals.bogey / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small></TableCell>
-                        <TableCell key="scoringAverageMetricsTotal8">{scoringAverageTotals.double} {scoringAverageTotals.double !== 0 && <small>({(scoringAverageTotals.double / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                        <TableCell key="scoringAverageMetricsTotal9">{scoringAverageTotals.triple} {scoringAverageTotals.triple !== 0 && <small>({(scoringAverageTotals.triple / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                        <TableCell key="scoringAverageMetricsTotal10">{scoringAverageTotals.quad} {scoringAverageTotals.quad !== 0 && <small>({(scoringAverageTotals.quad / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                        <TableCell key="scoringAverageMetricsTotal11">{scoringAverageTotals.threePutts} {scoringAverageTotals.threePutts !== 0 && <small>({(scoringAverageTotals.threePutts / scoringAverageTotals.numHoles * 100).toFixed(2)}%)</small>}</TableCell>
-                    </TableRow>
                 </TableBody>
             </Table>
 
-            {/* Best Anderson Glen */}
-            {/* <h1 className="marginTopExtraLarge marginBottomLarge">Best Anderson Glen</h1>
-            <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightExtraSmall">Best score on Front 9 -</h3>
-                <h3 className="strongFont">({courseMetrics.andersonGlen.out}) {courseMetrics.andersonGlen.outDate} {courseMetrics.andersonGlen.outPutts} putts</h3>
-            </div>
-            <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightExtraSmall">Best score on Back 9 -</h3>
-                <h3 className="strongFont">({courseMetrics.andersonGlen.in}) {courseMetrics.andersonGlen.inDate} {courseMetrics.andersonGlen.inPutts} putts</h3>
-            </div>
-            <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightExtraSmall">Best score on 18 holes -</h3>
-                <h3 className="strongFont">({courseMetrics.andersonGlen.totalOut} + {courseMetrics.andersonGlen.totalIn} = {courseMetrics.andersonGlen.total}) {courseMetrics.andersonGlen.totalDate} {courseMetrics.andersonGlen.totalPutts} putts</h3>
-            </div> */}
+            {/* This section can be displayed after approach table - can separate drive/approach/putting into different sections */}
+            <h1 className="marginTopExtraLarge marginBottomMedium">Insights</h1>
+            <div className="marginTopMedium">
+                <ul>
+                    {/* 3 putts */}
+                    <li>
+                        {/* \\X\\ 3-putts made up \\Y\\% of \\Z\\ total strokes over par */}
+                        <p>
+                            <b>{scoringAverageMetrics[scoringAverageMetrics.length - 1].threePutts} </b>
+                            3-putts made up
+                            <b> {(scoringAverageMetrics[scoringAverageMetrics.length - 1].threePutts / scoringAverageMetrics[scoringAverageMetrics.length - 1].scoreToPar * 100).toFixed(0)}% </b>
+                            of total strokes over par
+                        </p>
+                    </li>
+                    <li>
+                        {/* \\X\\ 3-putts made up \\Y\\% of \\Z\\ total strokes over par */}
+                        <p>
+                            Averaged
+                            <b> {(scoringAverageMetrics[scoringAverageMetrics.length - 1].threePutts / totalHoles * 18).toFixed(2)} </b>
+                            3-putts per round
+                        </p>
+                    </li>
 
-            {/* Best Gilelad Highlands */}
-            {/* <h1 className="marginTopExtraLarge marginBottomLarge">Best Gilead Highlands</h1>
-            <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightExtraSmall">Best score on Front 9 -</h3>
-                <h3 className="strongFont">({courseMetrics.gileadHighlands.out}) {courseMetrics.gileadHighlands.outDate} {courseMetrics.gileadHighlands.outPutts} putts</h3>
+                    {/* LB */}
+                    <li>
+                        {/* \\X\\ lost balls made up \\Y\\% of total strokes over par */}
+                        <p>
+                            <b>{lostBallMetrics.totalLostBalls} </b>
+                            lost balls made up
+                            <b> {(lostBallMetrics.totalLostBalls / scoringAverageMetrics[scoringAverageMetrics.length - 1].scoreToPar * 100).toFixed(0)}% </b> 
+                            of total strokes over par (assuming each lost ball contributes exactly 1 stroke to par)
+                        </p>
+                    </li>
+                    <li style={{ marginLeft: "24px" }}>
+                        {/* Averaged \\X\\ LB per round, adding an everage of \\Y\\ strokes to par */}
+                        <p>
+                            Averaged
+                            <b> {(lostBallMetrics.totalLostBalls / totalHoles * 18).toFixed(2)} </b>
+                            lost balls per round
+                        </p>
+                    </li>
+
+                    {/* Sand */}
+                    <li>
+                        {/* \\X\\ bunker holes made up \\Y\\% of total strokes over par */}
+                        <p>
+                            <b>{sandHoleCount} </b>
+                            bunker holes made up
+                            <b> {percentOfStrokesAddedToParForSandHoles}% </b>
+                            of total strokes over par
+                        </p>
+                    </li>
+                    <li style={{ marginLeft: "24px" }}>
+                        {/* Sand holes added an average of \\X\\ strokes per hole (\\Y\\ over par for non sand holes, \\Z\\ over par for sand holes) */}
+                        <p>
+                            Sand holes added an average of
+                            <b> {strokeAverageAddedForSandHoles} </b>
+                            strokes per hole (
+                            <b>{nonSandHoleScoringAverage} </b>
+                            over par for non sand holes,
+                            <b> {sandHoleScoringAverage} </b>
+                            over par for sand holes)
+                        </p>
+                    </li>
+                    <li style={{ marginLeft: "24px" }}>
+                        {/* Averaged \\X\\ holes in bunkers per round (accounts for \\Y\\ total strokes over par) */}
+                        <p>
+                            Averaged
+                            <b> {sandHolesPerRound} </b>
+                            holes in bunkers per round (accounts for
+                            <b> {strokeAverageAddedForSandHolesPerRound} </b>
+                            total strokes over par per round)
+                        </p>
+                    </li>
+                    <li style={{ marginLeft: "24px" }}>
+                        {/* Averaged \\X\\ putts after sand shots */}
+                        <p>
+                            Averaged
+                            <b> {averagePuttsForSandHoles} </b>
+                            putts after sand shots (
+                            <b>{averagePuttsForNonSandHoles} </b>
+                            putts for non sand holes)
+                        </p>
+                    </li>
+
+                    {/* BR */}
+                    <li>
+                        {/* \\X\\ BR holes made up \\Y\\% of total strokes over par */}
+                        <p>
+                            <b>{brHoleCount} </b>
+                            Bump & Run shots made up
+                            <b> {percentOfStrokesAddedToParForBrHoles}% </b>
+                            of total strokes over par
+                        </p>
+                    </li>
+                    <li style={{ marginLeft: "24px" }}>
+                        {/* BR holes added an average of \\X\\ strokes per hole (\\Y\\ over par for non Bump & Run holes, \\Z\\ over par for Bump & Run holes) */}
+                        <p>
+                            Bump & Run holes added an average of
+                            <b> {strokeAverageAddedForBrHoles} </b>
+                            strokes per hole (
+                            <b>{nonBrHoleScoringAverage} </b>
+                            over par for non Bump & Run holes,
+                            <b> {brHoleScoringAverage} </b>
+                            over par for Bump & Run holes)
+                        </p>
+                    </li>
+                    <li style={{ marginLeft: "24px" }}>
+                        {/* Averaged \\X\\ Bump & Run shots per round (accounts for \\Y\\ total strokes over par) */}
+                        <p>
+                            Averaged
+                            <b> {brHolesPerRound} </b>
+                            Bump & Run shots per round (accounts for
+                            <b> {strokeAverageAddedForBrHolesPerRound} </b>
+                            total strokes over par per round)
+                        </p>
+                    </li>
+                    <li style={{ marginLeft: "24px" }}>
+                        {/* Averaged \\X\\ putts after Bump & Run shots */}
+                        <p>
+                            Averaged
+                            <b> {averagePuttsForBrHoles} </b>
+                            putts after Bump & Run shots (
+                            <b>{averagePuttsForNonBrHoles} </b>
+                            putts for non Bump & Run holes)
+                        </p>
+                    </li>
+
+                    
+                    {/* 
+                    <li>
+                        <p>
+
+                        </p>
+                    </li>
+                    */}
+                </ul>
             </div>
-            <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightExtraSmall">Best score on Back 9 -</h3>
-                <h3 className="strongFont">({courseMetrics.gileadHighlands.in}) {courseMetrics.gileadHighlands.inDate} {courseMetrics.gileadHighlands.inPutts} putts</h3>
-            </div>
-            <div className="flexRow alignCenter marginBottomSmall">
-                <h3 className="marginRightExtraSmall">Best score on 18 holes -</h3>
-                <h3 className="strongFont">({courseMetrics.gileadHighlands.totalOut} + {courseMetrics.gileadHighlands.totalIn} = {courseMetrics.gileadHighlands.total}) {courseMetrics.gileadHighlands.totalDate} {courseMetrics.gileadHighlands.totalPutts} putts</h3>
-            </div> */}
 
             {/* Course Records */}
-            {/* <h1 className="marginTopExtraLarge marginBottomLarge">Course Records</h1> */}
             {calculateCourseRecords(courseInfo, courseMetrics)}
 
             {/* {Object.keys(courseMetrics).map(courseMetric => {
@@ -1667,7 +1865,7 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {sortedEagleSummary.map((eagle) => {
+                    {/* {sortedEagleSummary.map((eagle) => {
                         return (
                             <TableRow key="" className="hideTableBottomBorderLastChildCell">
                                 <TableCell>{eagle.date}</TableCell>
@@ -1678,7 +1876,7 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
                                 <TableCell>{eagle.score}</TableCell>
                             </TableRow>
                         );
-                    })}
+                    })} */}
                 </TableBody>
             </Table>
 
@@ -1771,14 +1969,22 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
 
             {/* Lost Balls */}
             <h1 className="marginTopExtraLarge marginBottomLarge">Lost Balls</h1>
-            <div className="flexRow alignCenter marginBottomSmall">
+            {/* <div className="flexRow alignCenter marginBottomSmall">
                 {createLostBallsTable(lostBallMetrics)}
-            </div>
+            </div> */}
 
             {/* Driving */}
             <h1 className="marginTopExtraLarge marginBottomLarge">Driving</h1>
             <div className="flexRow alignCenter marginBottomSmall">
                 {createDrivingTable(drivingMetrics)}
+            </div>
+            {/* Insights */}
+            <div className="marginTopMedium">
+                <ul>
+                    <li><p>Average driving distance left of fairway: <b>{lDrivingAverage} </b> (<b>{lgDrivingAverage} for GIR holes</b>)</p></li>
+                    <li><p>Average driving distance FIR: <b>{fDrivingAverage} </b> (<b>{fgDrivingAverage} for GIR holes</b>)</p></li>
+                    <li><p>Average driving distance right of fairway: <b>{rDrivingAverage} </b> (<b>{rgDrivingAverage} for GIR holes</b>)</p></li>
+                </ul>
             </div>
 
             {/* Approach */}
@@ -1801,6 +2007,33 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
                     </Select>
                 </FormControl>
             </div>
+            <span> 
+                {/* {approachView} shows ...  */}
+{/* 
+
+Each row represents a distance range from the green and the club typically used.
+
+Missed GIR tooltip:     Distribution of shots that resultsed in missed GIR
+- Example: From inside 50 yds
+
+
+GIR tooltip:            Distribution of shots that resulted in GIR
+
+
+*/}
+            
+            
+            </span>
+
+
+            {/* Idea for P3/4/5 approach */}
+            {/* 
+            
+            Par 3 GIR already exists
+            Par 4 Approach already exists? could remove P3 & P5 data
+            Par 5 - GIR%, when FIR calculate GIR/G-1 %,
+
+            */}
             <div className="flexRow alignCenter marginBottomSmall">
                 {createApproachTable(approachMetrics, approachView, setApproachView)}
             </div>
@@ -1817,8 +2050,9 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
                 {createPuttingTable(puttingMetrics)}
             </div> */}
 
-            <h1 className="marginTopExtraLarge marginBottomLarge">Hole Flow</h1>
-            {createCumulativeGraphs(displayedRounds, drivingMetrics, puttingMetrics)}
+            {/* Not working? */}
+            {/* <h1 className="marginTopExtraLarge marginBottomLarge">Hole Flow</h1>
+            {createCumulativeGraphs(displayedRounds, drivingMetrics, puttingMetrics)} */}
         </>
     );
 }
@@ -1965,7 +2199,7 @@ export const courseSummary = (courseInfo, allRounds, expandSingleHoleMetric, han
     // const courseNames = Object.keys(courseInfo);
     // const courseNames = [];
     // for (let course of courseInfo) courseNames.push(course.displayName);
-    console.log("courseTours",courseTours)
+    // console.log("courseTours",courseTours)
     for (let course of courseTours) {
         if (course !== "Signature Holes") {
             // const selectedCourse = courseNames.filter(function(courseName) {
@@ -1977,9 +2211,9 @@ export const courseSummary = (courseInfo, allRounds, expandSingleHoleMetric, han
     }
 
     // console.log("courseNames",courseNames)
-    console.log("selectedCourseTours",selectedCourseTours)
+    // console.log("selectedCourseTours",selectedCourseTours)
 
-    console.log("singleHoleMetrics",singleHoleMetrics)
+    // console.log("singleHoleMetrics",singleHoleMetrics)
 
     const sortedObj = Object.keys(singleHoleMetrics).sort(
         function(a,b) {
@@ -1991,13 +2225,13 @@ export const courseSummary = (courseInfo, allRounds, expandSingleHoleMetric, han
         }
     );
 
-    console.log("sortedObj",sortedObj)
+    // console.log("sortedObj",sortedObj)
 
     const isHoleMetric = (hole) => {
         // console.log("secondCheck\n\nhole",hole) // ex: southsuburbanhole1
         // console.log("!nonHoleMetrics.includes(hole)",!nonHoleMetrics.includes(hole)) // check is metric, not hole
-        console.log("selectedCourseTours.includes(singleHoleMetrics[hole].courseKey)",selectedCourseTours.includes(singleHoleMetrics[hole].course))
-        if (selectedCourseTours.includes(singleHoleMetrics[hole].course)) console.log("hole",hole)
+        // console.log("selectedCourseTours.includes(singleHoleMetrics[hole].courseKey)",selectedCourseTours.includes(singleHoleMetrics[hole].course))
+        // if (selectedCourseTours.includes(singleHoleMetrics[hole].course)) console.log("hole",hole)
         return (
             !nonHoleMetrics.includes(hole) && selectedCourseTours.includes(singleHoleMetrics[hole].course)
         )
@@ -2020,7 +2254,7 @@ export const courseSummary = (courseInfo, allRounds, expandSingleHoleMetric, han
 
             {sortedObj.map((hole) => {
                 // console.log("hole",hole) ex: southSuburbanHole1
-                console.log("singleHoleMetrics[hole]",singleHoleMetrics[hole])                
+                // console.log("singleHoleMetrics[hole]",singleHoleMetrics[hole])                
                 if (isHoleMetric(hole)) {
                     const holeSummaryRef = React.createRef();
                     const executeScroll = () => holeSummaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
