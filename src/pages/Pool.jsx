@@ -422,7 +422,7 @@ const Pool = () => {
     // Store schedule in mongo
     const saveSchedule = (obj) => {
         setIsScheduleLoading(true);
-        axios.put('http://localhost:10000/add-schedule', obj)
+        axios.put('https://worldofjack-server.onrender.com/add-schedule', obj)
             .then((response) => {
                 setSnackbarMessages([...snackbarMessages, "Schedule saved"]);
                 setIsScheduleLoading(false);
@@ -437,7 +437,7 @@ const Pool = () => {
     // Store score info in mongo
     const saveCourses = (obj) => {
         setIsCoursesLoading(true);
-        axios.put('http://localhost:10000/add-courses', obj)
+        axios.put('https://worldofjack-server.onrender.com/add-courses', obj)
         .then((response) => {
             setSnackbarMessages([...snackbarMessages, "Courses saved"]);
             setIsCoursesLoading(false);
@@ -452,7 +452,7 @@ const Pool = () => {
     // Store tournament data in mongo (players, course info, event info)
     const savePlayers = (obj) => {
         setIsAllPlayersLoading(true);
-        axios.put('http://localhost:10000/add-players', obj)
+        axios.put('https://worldofjack-server.onrender.com/add-players', obj)
             .then((response) => {
                 setSnackbarMessages([...snackbarMessages, "Players saved"]);
                 setIsAllPlayersLoading(false);
@@ -467,7 +467,7 @@ const Pool = () => {
     // Store leaerboard info in mongo
     const saveLeaderboard = (obj) => {
         setIsLeaderboardLoading(true);
-        axios.put('http://localhost:10000/add-leaderboard', obj)
+        axios.put('https://worldofjack-server.onrender.com/add-leaderboard', obj)
             .then((response) => {
                 setSnackbarMessages([...snackbarMessages, "Leaderboard saved"]);
                 setIsLeaderboardLoading(false);
@@ -482,7 +482,7 @@ const Pool = () => {
     // Store leaerboard info in mongo
     const saveDfs = (obj) => {
         setIsDfsLoading(true);
-        axios.put('http://localhost:10000/add-dfs', obj)
+        axios.put('https://worldofjack-server.onrender.com/add-dfs', obj)
             .then((response) => {
                 setSnackbarMessages([...snackbarMessages, "DFS salaries saved"]);
                 setIsDfsLoading(false);
@@ -504,7 +504,7 @@ const Pool = () => {
     const fetchMongoSchedule = async (currentYear) => {
         setIsScheduleLoading(true);
         try {
-            await axios.get("http://localhost:10000/get-schedule", { params: { year: currentYear }})
+            await axios.get("https://worldofjack-server.onrender.com/get-schedule", { params: { year: currentYear }})
                 .then((response) => {
                     setSchedule(response.data);
                     setIsScheduleLoading(false);
@@ -518,7 +518,7 @@ const Pool = () => {
     const fetchMongoCourses = async (currentYear, tournamentId) => {
         setIsCoursesLoading(true);
         try {
-            await axios.get("http://localhost:10000/get-courses", { params: { year: currentYear, tournamentId: tournamentId }})
+            await axios.get("https://worldofjack-server.onrender.com/get-courses", { params: { year: currentYear, tournamentId: tournamentId }})
                 .then((response) => {
                     setCourses(response.data);
                     setIsCoursesLoading(false);
@@ -532,7 +532,7 @@ const Pool = () => {
     const fetchMongoPlayers = async (currentYear, tournamentId, retrieveTournamentDataWhenReadyAndSavedPlayersNotFound) => {
         setIsAllPlayersLoading(true);
         try {
-            await axios.get("http://localhost:10000/get-players", { params: { year: currentYear, tournamentId: tournamentId }})
+            await axios.get("https://worldofjack-server.onrender.com/get-players", { params: { year: currentYear, tournamentId: tournamentId }})
                 .then((response) => {
                     setAllPlayers(response.data);
                     setIsAllPlayersLoading(false);
@@ -549,7 +549,7 @@ const Pool = () => {
     const fetchMongoLeaderboard = async (currentYear, tournamentId) => {
         setIsLeaderboardLoading(true);
         try {
-            await axios.get("http://localhost:10000/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
+            await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
                 .then((response) => {
                     setLeaderboard(response.data);
                     setIsLeaderboardLoading(false);
@@ -563,7 +563,7 @@ const Pool = () => {
     const fetchMongoDfs = async (currentYear, tournamentId, beginDfsCalculations) => {
         setIsDfsLoading(true);
         try {
-            await axios.get("http://localhost:10000/get-dfs", { params: { year: currentYear, tournamentId: tournamentId }})
+            await axios.get("https://worldofjack-server.onrender.com/get-dfs", { params: { year: currentYear, tournamentId: tournamentId }})
                 .then((response) => {
                     setDfs(response.data);
                     setIsDfsLoading(false);
