@@ -1,5 +1,5 @@
 // server.js
-import { uri } from "./uri";
+// import { uri } from "./uri";
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
