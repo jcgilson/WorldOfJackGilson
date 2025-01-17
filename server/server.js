@@ -23,7 +23,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB URI (Replace with your MongoDB Atlas URI or local URI)
-const mongoURI = uri;
+const mongoURI = REACT_APP_MONGO_CONNECTION_STRING;
 
 // Connect to MongoDB
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
