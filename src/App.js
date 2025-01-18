@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 // Pages
-import Golf from './pages/Golf';
+// import Golf from './pages/Golf';
 import Pool from './pages/Pool'
 // Styles
 import './App.css';

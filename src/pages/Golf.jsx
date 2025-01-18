@@ -1067,7 +1067,6 @@ const Golf = () => {
                     tableSort={tableSort}
                     changeSortMethod={changeSortMethod}
                     filters={filters}
-                    roundYears={roundYears}
                     getAnnualSummaryRows={getAnnualSummaryRows}
                     displayedNumberOfRounds={displayedNumberOfRounds}
                     displayedHoles={displayedHoles}

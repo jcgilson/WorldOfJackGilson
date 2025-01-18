@@ -23,7 +23,6 @@ const GolfTable = (props) => {
         tableSort,
         changeSortMethod,
         filters,
-        roundYears,
         getAnnualSummaryRows,
         displayedNumberOfRounds,
         displayedHoles,
