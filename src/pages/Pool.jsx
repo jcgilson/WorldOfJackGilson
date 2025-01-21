@@ -46,6 +46,12 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 // import { testTournamentResponse } from "../test/testTournamentResponse";
 // import { testLeaderboardResponse } from "../test/testLeaderboardResponse";
 
+// Deploy steps
+// Publish latest commit to server
+    // https://dashboard.render.com/web/srv-cu1kutd6l47c73a4v7og/deploys/dep-cu80q852ng1s73cuvoqg
+// Publish latest commit to Netlify
+    // https://app.netlify.com/sites/worldofjackgilson/deploys
+
 // Next steps
 // Hide illustrative player selection when tournament in progress (might need to add state)
     // Also need more validations for fields not added
@@ -1639,7 +1645,7 @@ const Pool = () => {
                     {/* Pool leaderboard and Leaderboard */}
                     <div className={screenWidth > 1480 ? "flexFlowRowWrap" : "flexColumn"}>
                         {leaderboard && poolLeaderboard &&
-                            <div id="poolLeaderboard" style={{ width: "640px", marginRight: screenWidth > 1480 ? "64px" : "0" }}>
+                            <div id="poolLeaderboard" style={{ width: screenWidth < 1000 ? "95%" : "640px", marginLeft: screenWidth < 1000 ? "2.5%" : "0", marginRight: screenWidth > 1480 ? "64px" : "0" }}>
                                 <div className="flexRow justifySpaceBetween alignCenter">
                                     <h1 className="whiteFont marginTopMedium marginBottomMedium">Pool</h1>
                                     {screenWidth < 1480 && <b className="textDecoration whiteFont floatRight" onClick={() => handleScrollTo('leaderboard')}>Jump to Leaderboard</b>}
@@ -1699,7 +1705,7 @@ const Pool = () => {
                         }
 
                         {leaderboard && leaderboard.leaderboard &&
-                            <div id="leaderboard" style={{ width: "640px", marginTop: screenWidth > 1480 ? "0" : "24px" }}>
+                            <div id="leaderboard" style={{ width: screenWidth < 1000 ? "95%" : "640px", marginLeft: screenWidth < 1000 ? "2.5%" : "0", marginTop: screenWidth > 1480 ? "0" : "24px" }}>
                                 <div className="flexRow justifySpaceBetween alignCenter">
                                     <h1 className="whiteFont marginTopMedium marginBottomMedium">Leaderboard</h1>
                                     {screenWidth < 1480 && <b className="textDecoration whiteFont" onClick={() => handleScrollTo('poolLeaderboard')}>Jump to Pool</b>}
