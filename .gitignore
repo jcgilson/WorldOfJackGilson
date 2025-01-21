@@ -35,3 +35,8 @@ yarn-error.log*
 
 # uri
 /server/uri.js
+
+# test responses
+/src/test/testScheduleResponse.js
+/src/test/testTournamentResponse.js
+/src/test/testLeaderboardResponse.js

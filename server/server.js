@@ -1,5 +1,5 @@
 // server.js
-// import { uri } from "./uri";
+// import { uri } from "./uri.js";
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -17,6 +17,7 @@ const PlayersCollection = require('./models/Players');
 const CoursesCollection = require('./models/Courses');
 const LeaderboardCollection = require('./models/Leaderboard');
 const DfsCollection = require('./models/Dfs');
+const PoolsCollection = require('./models/Pools');
 
 // Middleware
 app.use(cors());
@@ -24,8 +25,8 @@ app.use(express.json());
 
 // MongoDB URI (Replace with your MongoDB Atlas URI or local URI)
 // const mongoURI = uri; // local env (import above)
-const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed env
-// const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_GOLF; // deployed env
+const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
+// const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_GOLF; // deployed GOLF env
 
 // Connect to MongoDB
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -160,7 +161,7 @@ app.put('/add-schedule', async (req, res) => {
 app.put('/add-players', async (req, res) => {
   try {
     const result = await PlayersCollection.findOneAndUpdate(
-      { "tournamentId": req.body.tournamentId },
+      { "tournamentId": req.body.tournamentId, "year": req.body.year },
       { $set: 
         {
           year: req.body.year,
@@ -184,7 +185,7 @@ app.put('/add-players', async (req, res) => {
 app.put('/add-courses', async (req, res) => {
   try {
     const result = await CoursesCollection.findOneAndUpdate(
-      { "tournamentId": req.body.tournamentId },
+      { "tournamentId": req.body.tournamentId, "year": req.body.year },
       { $set: 
         {
           year: req.body.year,
@@ -208,12 +209,19 @@ app.put('/add-courses', async (req, res) => {
 app.put('/add-leaderboard', async (req, res) => {
   try {
     const result = await LeaderboardCollection.findOneAndUpdate(
-      { "tournamentId": req.body.tournamentId },
+      { "tournamentId": req.body.tournamentId, "year": req.body.year },
       { $set: 
         {
+          roundId: req.body.roundId,
+          roundStatus: req.body.roundStatus,
           year: req.body.year,
           tournamentId: req.body.tournamentId,
-          leaderboard: req.body.leaderboard
+          leaderboard: req.body.leaderboard,
+          timestamp: req.body.timestamp,
+          status: req.body.status,
+          cutLines: req.body.cutLines,
+          lastAppliedSortMethod: req.body.lastAppliedSortMethod,
+          displayDownIcon: req.body.displayDownIcon
         }
       },
       { new: true, upsert: true }
@@ -232,7 +240,7 @@ app.put('/add-leaderboard', async (req, res) => {
 app.put('/add-dfs', async (req, res) => {
   try {
     const result = await DfsCollection.findOneAndUpdate(
-      { "tournamentId": req.body.tournamentId },
+      { "tournamentId": req.body.tournamentId, "year": req.body.year },
       { $set: 
         {
           year: req.body.year,
@@ -252,50 +260,84 @@ app.put('/add-dfs', async (req, res) => {
   }
 });
 
+// POST route to add pool entry
+app.post('/add-poolEntry', async (req, res) => {
+  const newPoolEntry = new PoolsCollection(req.body);
+  try {
+    await newPoolEntry.save();
+    res.json({ message: 'Pool entry added!' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET route to fetch annual schedule
 app.get('/get-schedule', async (req, res) => {try {
   const schedule = await ScheduleCollection.findOne({ year: req.query.year });
-    if (!schedule) return res.status(404).send(`Schedule not found`)
-    return res.json(schedule)
+    if (!schedule) return res.status(404).send(`Schedule not found`);
+    return res.json(schedule);
   } catch (error) {
-    res.status(500).send("Server error which fetching schedule from Mongo")
+    res.status(500).send("Server error while fetching schedule from Mongo");
   }
 });
 
+// GET route to fetch tournament courses
 app.get('/get-courses', async (req, res) => {try {
   const courses = await CoursesCollection.findOne({ year: req.query.year, tournamentId: req.query.tournamentId });
-    if (!courses) return res.status(404).send(`Courses not found`)
-    return res.json(courses)
+    if (!courses) return res.status(404).send(`Courses not found`);
+    return res.json(courses);
   } catch (error) {
-    res.status(500).send("Server error which fetching courses from Mongo")
+    res.status(500).send("Server error while fetching courses from Mongo");
   }
 });
 
+// GET route to fetch tournament players
 app.get('/get-players', async (req, res) => {
   try {
     const players = await PlayersCollection.findOne({ year: req.query.year, tournamentId: req.query.tournamentId });
-    if (!players) return res.status(404).send(`Players not found`)
-    return res.json(players)
+    if (!players) return res.status(404).send(`Players not found`);
+    return res.json(players);
   } catch (error) {
-    res.status(500).send("Server error which fetching players from Mongo")
+    res.status(500).send("Server error while fetching players from Mongo");
   }
 });
 
+// GET route to fetch tournament leaderboard
 app.get('/get-leaderboard', async (req, res) => {
   try {
     const leaderboard = await LeaderboardCollection.findOne({ year: req.query.year, tournamentId: req.query.tournamentId });
-    if (!leaderboard) return res.status(404).send(`Leaderboard not found`)
-    return res.json(leaderboard)
+    if (!leaderboard) return res.status(404).send(`Leaderboard not found`);
+    return res.json(leaderboard);
   } catch (error) {
-    res.status(500).send("Server error which fetching leaderboard from Mongo")
+    res.status(500).send("Server error while fetching leaderboard from Mongo");
   }
 });
 
+// GET route to fetch tournament player salaries
 app.get('/get-dfs', async (req, res) => {
   try {
     const dfs = await DfsCollection.findOne({ year: req.query.year, tournamentId: req.query.tournamentId });
-    if (!dfs) return res.status(404).send(`DFS not found`)
-    return res.json(dfs)
+    if (!dfs) return res.status(404).send(`DFS not found`);
+    return res.json(dfs);
   } catch (error) {
-    res.status(500).send("Server error which fetching DFS from Mongo")
+    res.status(500).send("Server error while fetching DFS from Mongo");
+  }
+});
+
+// GET route to fetch poolentrys
+app.get('/get-poolEntries', async (req, res) => {
+  try {
+    const poolEntries = await PoolsCollection.find(req.query);
+    if (!poolEntries) return res.status(404).send(`Pool entries not found`);
+    let tempPoolEntries = [];
+    for (let i = 0; i < poolEntries.length; i++) {
+      let tempEntry = poolEntries[i];
+      delete tempEntry.phone;
+      delete tempEntry.email;
+      tempPoolEntries.push(tempEntry);
+    }
+    return res.json(tempPoolEntries);
+  } catch (error) {
+    res.status(500).send("Server error while fetching pool entries");
   }
 });

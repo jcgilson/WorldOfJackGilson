@@ -1,3 +1,64 @@
+/* Schedule dropdown selection */
+.MuiSelect-select .hidePushPin svg {
+    display: none !important;
+}
+
+/* Schedule dropdown font color */
+#scheduleDropdown span, #scheduleDropdown b {
+    color: white !important;
+}
+
+/* Alert */
+.MuiAlert-root svg {
+    margin-top: 4px !important
+}
+
+/* Text Input font color */
+.MuiInputBase-input {
+    color: white !important;
+}
+
+.pool .whiteButton {
+    background-color: white;
+    color: black;
+    border-radius: 48px;
+    text-transform: none;
+}
+
+/* Illustrative player selection */
+.pool .playerOption span.MuiCheckbox-root {
+    padding: 4px 12px;
+}
+.pool .playerOption span.MuiCheckbox-root path, .pool .formCheckbox path {
+    color: white;
+}
+/* Disabled illustrative player selection */
+.pool .playerOption.disabled path, .pool .playerOption.disabled p,
+.pool .playerOption.disabled span, .pool .playerOption.disabled b {
+    color: #FFFFFFAA !important;
+}
+
+/* Expanded Lineup Accordion Summary */
+.pool .Mui-expanded.MuiAccordionSummary-gutters {
+    min-height: 24px;
+}
+.pool .Mui-expanded.MuiAccordionSummary-contentGutters {
+    margin: 16px 0 12px;
+}
+
+/* Pool leaderboard */
+.poolLeaderboard th, .poolLeaderboard td {
+    color: white;
+    padding: 4px;
+}
+
+/* Strikethrough font for scores not counted */
+.strikethroughFont {
+    color: #FFFFFF77 !important;
+    text-decoration: line-through;
+}
+
+/* Snackbar */
 .pool .MuiSnackbar-root .MuiSnackbarContent-action {
     padding-left: 0px !important;
     max-width: 32px !important;
@@ -11,6 +72,7 @@
     background: none !important;
 }
 
-.MuiSelect-select .hidePushPin svg {
-    display: none !important;
+/* Loader */
+.pool .MuiCircularProgress-root circle {
+    color: white !important;
 }
