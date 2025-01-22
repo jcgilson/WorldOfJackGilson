@@ -194,7 +194,7 @@ const Pool = () => {
     const [screenWidth, setScreenWidth] = useState(window.innerWidth); // Number - sets screen width for component dynamism
     const configuration = "mongo"; // String - Use "mongo" to fetch saved data, "rapidApi" to query new tournament info
     const actualYear = getActualYear(); // Used in case currentYear not available should calculate current year
-    const hardCodeDate = "01/19/25"; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
+    const hardCodeDate = "01/21/25"; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
     const [currentDate, setCurrentDate] = useState(null); // String
     const [currentYear, setCurrentYear] = useState(null); // String
     const displayPreviousTournamentForOneDay = true; // Boolean - Ability to (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer // TODO: Need to determine when Rapid API tournament info is available, same with DFS data
@@ -213,7 +213,10 @@ const Pool = () => {
     const [isPoolLoading, setIsPoolLoading] = useState(false); // Boolean
     
     // API responses - can simply use rapidApi front end to get desired results and directly set to null state here
-    const [preventRetries, setPreventRetries] = useState(false); // Boolean - prevents Rapid API from triggering multiple calls simulataneously
+    const [preventScheduleRetries, setPreventScheduleRetries] = useState(false); // Boolean - prevents Rapid API from triggering mulitple schedule calls
+    const [preventTournamentRetries, setPreventTournamentRetries] = useState(false); // Boolean - prevents Rapid API from triggering mulitple tournament calls
+    const [preventRetries, setPreventLeaderboardRetries] = useState(false); // Boolean - prevents Rapid API from triggering multiple leaderboard calls
+    
     const [scheduleResponse, setScheduleResponse] = useState(
         // NOT HARDCODING
         null
@@ -408,11 +411,15 @@ const Pool = () => {
                     }
                 }
             }
+            // console.log("isReadyToFetchNewTournamentInfo", isReadyToFetchNewTournamentInfo)
+            // console.log("dfsSalaries", dfsSalaries)
+            // console.log("dfsSalaries.length > 0", dfsSalaries.length > 0)
+            // console.log("((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0))", ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)))
             setActiveTournamentId(tempActiveTournamentId);
             setHighlightedTournamentId(tempActiveTournamentId);
             fetchMongoCourses(currentFormattedDate, tempActiveTournamentId);
             // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
-            fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, isReadyToFetchNewTournamentInfo && dfsSalaries.length > 0 ? true : false);
+            fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
             fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
             fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
             // console.log("----currentTournamentDay",currentTournamentDay) // current bug with UTC date format sending current day + 1 
@@ -670,48 +677,51 @@ const Pool = () => {
         } catch (err) {
             console.error('Error fetching saved players');
             setIsAllPlayersLoading(false);
+            // console.log("retrieveTournamentDataWhenReadyAndSavedPlayersNotFound",retrieveTournamentDataWhenReadyAndSavedPlayersNotFound)
             if (retrieveTournamentDataWhenReadyAndSavedPlayersNotFound) {
-                retrieveTournamentDataRapid();
+                // retrieveTournamentDataRapid();
             }
         }
     }
 
     const fetchMongoLeaderboard = async (currentYear, tournamentId, isReadyToGetUpdatedLeaderboardInfo = false, currentTournamentDay = null) => {
-        setIsLeaderboardLoading(true);
-        // Need to add timestamp to payload (in milliseconds)
-        try {
-            // await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
-            await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
-                .then((response) => {
-                    const timestamp = moment.utc().valueOf();
-                    // Conditions for pulling an updated leaderboard below, otherwise set fetched leaderboard
-                    if (
-                        // It's been at least an hour since last fetch
-                        ((timestamp - response.data.timestamp) > 3600000)
-                        // It's a tournament day
-                        && isReadyToGetUpdatedLeaderboardInfo
-                        // Round is not in "Official" (completed) status
-                        && !((currentTournamentDay === response.data.roundId) && (response.data.roundStatus !== "Official"))
-                        // Tournament is not complete
-                        && !response.data.status !== "Official"
-                    ) {
-                        console.log("Leaderboard last fetched greater than 1 hour ago, about to fetch new leaderboard");
-                        setPreventRetries(true);
-                        retrieveLeaderboardDataRapid();
-                    } else {
-                        // When not going to overwrite recently fetched leaderboard, set leaderboard and erase loading state
-                        setLeaderboard(response.data);
-                        setIsLeaderboardLoading(false);
-                    }
-                })
-        } catch (err) {
-            // Fetch new leaderboard when tournament in progress and no existing leaderboard is available
-            console.error(`Error fetching saved players${isReadyToGetUpdatedLeaderboardInfo && !preventRetries && ", attempting to fetch initial leaderboard"}`);
-            if (isReadyToGetUpdatedLeaderboardInfo && !preventRetries) {
-                setPreventRetries(true);
-                retrieveLeaderboardDataRapid();
-            } 
-            setIsLeaderboardLoading(false);
+        if (!setPreventTournamentRetries && currentYear && tournamentId) {
+            setIsLeaderboardLoading(true);
+            // Need to add timestamp to payload (in milliseconds)
+            try {
+                // await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
+                await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
+                    .then((response) => {
+                        const timestamp = moment.utc().valueOf();
+                        // Conditions for pulling an updated leaderboard below, otherwise set fetched leaderboard
+                        if (
+                            // It's been at least an hour since last fetch
+                            ((timestamp - response.data.timestamp) > 3600000)
+                            // It's a tournament day
+                            && isReadyToGetUpdatedLeaderboardInfo
+                            // Round is not in "Official" (completed) status
+                            && !((currentTournamentDay === response.data.roundId) && (response.data.roundStatus !== "Official"))
+                            // Tournament is not complete
+                            && !response.data.status !== "Official"
+                        ) {
+                            console.log("Leaderboard last fetched greater than 1 hour ago, about to fetch new leaderboard");
+                            setPreventTournamentRetries(true);
+                            retrieveLeaderboardDataRapid();
+                        } else {
+                            // When not going to overwrite recently fetched leaderboard, set leaderboard and erase loading state
+                            setLeaderboard(response.data);
+                            setIsLeaderboardLoading(false);
+                        }
+                    })
+            } catch (err) {
+                // Fetch new leaderboard when tournament in progress and no existing leaderboard is available
+                console.error(`Error fetching saved players${isReadyToGetUpdatedLeaderboardInfo && !preventRetries && ", attempting to fetch initial leaderboard"}`);
+                if (isReadyToGetUpdatedLeaderboardInfo && !preventRetries) {
+                    setPreventTournamentRetries(true);
+                    retrieveLeaderboardDataRapid();
+                } 
+                setIsLeaderboardLoading(false);
+            }
         }
     }
 
@@ -1036,7 +1046,8 @@ const Pool = () => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_93236d46-7a6c-4406-aa79-d333d08b717e
         
-        if (currentYear && !preventRetries) {
+        if (currentYear && !preventScheduleRetries) {
+            setPreventScheduleRetries(true);
             setIsScheduleLoading(true);
     
             const options = {
@@ -1058,7 +1069,6 @@ const Pool = () => {
                 setScheduleResponse(response.data);
                 setIsScheduleLoading(false);
             } catch (error) {
-                setPreventRetries(true);
                 console.error(error);
                 setIsScheduleLoading(false);
             }
@@ -1069,8 +1079,11 @@ const Pool = () => {
     const retrieveTournamentDataRapid = async () => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_8a041a6a-98bc-4ed2-95af-4dcdb76f7c66
-
-        if (highlightedTournamentId && currentYear && !preventRetries) {
+        // console.log("highlightedTournamentId", highlightedTournamentId)
+        // console.log("currentYear ", currentYear )
+        // console.log("!preventTournamentRetries", !preventTournamentRetries)
+        if (highlightedTournamentId && currentYear && !preventTournamentRetries) {
+            setPreventTournamentRetries(true);
             setIsCoursesLoading(true);
             setIsAllPlayersLoading(true);
     
@@ -1095,7 +1108,6 @@ const Pool = () => {
                 setIsCoursesLoading(false);
                 setIsAllPlayersLoading(false);
             } catch (error) {
-                setPreventRetries(true);
                 console.error(error);
                 setIsCoursesLoading(false);
                 setIsAllPlayersLoading(false);
@@ -1110,7 +1122,7 @@ const Pool = () => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_a6e32f80-75c7-4c35-ab1b-bbd685ee82f3
 
-        if (highlightedTournamentId && currentYear && !preventRetries) {
+        if (highlightedTournamentId && currentYear && !setPreventLeaderboardRetries) {
             setIsLeaderboardLoading(true);
     
             const options = {
@@ -1133,7 +1145,7 @@ const Pool = () => {
                 setLeaderboardResponse(response.data);
                 setIsLeaderboardLoading(false);
             } catch (error) {
-                setPreventRetries(true);
+                setPreventLeaderboardRetries(true);
                 console.error(error);
                 setIsLeaderboardLoading(false);
             }
