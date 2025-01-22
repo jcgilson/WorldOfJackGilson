@@ -197,7 +197,7 @@ const Pool = () => {
     const [screenWidth, setScreenWidth] = useState(window.innerWidth); // Number - sets screen width for component dynamism
     const configuration = "mongo"; // String - Use "mongo" to fetch saved data, "rapidApi" to query new tournament info
     const actualYear = getActualYear(); // Used in case currentYear not available should calculate current year
-    const hardCodeDate = null; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
+    const hardCodeDate = "01/22/2025"; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
     const [currentDate, setCurrentDate] = useState(null); // String
     const [currentYear, setCurrentYear] = useState(null); // String
     const displayPreviousTournamentForOneDay = true; // Boolean - Ability to (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer // TODO: Need to determine when Rapid API tournament info is available, same with DFS data
@@ -704,9 +704,9 @@ const Pool = () => {
                             // It's a tournament day
                             && isReadyToGetUpdatedLeaderboardInfo
                             // Round is not in "Official" (completed) status
-                            && !((currentTournamentDay === response.data.roundId) && (response.data.roundStatus !== "Official"))
+                            && ((currentTournamentDay === response.data.roundId) && (response.data.roundStatus !== "Official"))
                             // Tournament is not complete
-                            && !response.data.status !== "Official"
+                            && response.data.status !== "Official"
                         ) {
                             console.log("Leaderboard last fetched greater than 1 hour ago, about to fetch new leaderboard");
                             retrieveLeaderboardDataRapid();
@@ -715,7 +715,6 @@ const Pool = () => {
                             setLeaderboard(response.data);
                             setIsLeaderboardLoading(false);
                         }
-                        setPreventTournamentRetries(true);
                     })
             } catch (err) {
                 // Fetch new leaderboard when tournament in progress and no existing leaderboard is available
