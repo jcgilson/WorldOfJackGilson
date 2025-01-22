@@ -1494,16 +1494,16 @@ const Pool = () => {
                     {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) &&
                         <div style={{ width: "85%" }}>
                             {/* Pool entry form */}
-                            <div className="flexColumn" style={{ width: "400px", margin: "0 auto" }}>
+                            <div className="flexColumn" style={{ width: "420px", margin: "16px auto" }}>
                                 {/* Submitted message */}
                                 {displayEntrySubmittedMessage && 
-                                    <Alert severity="success" style={{ marginTop: "16px", marginBottom: "16px", width: "370px" }}>
+                                    <Alert severity="success" style={{ marginTop: "16px", marginBottom: "16px", width: "390px" }}>
                                         Your entry was submitted successfully. Your selections have been saved if you would like to submit another entry.
                                     </Alert>
                                 }
                                 {/* Errors */}
                                 {Object.keys(poolForm.errors).length > 0 && displayPoolFormError && 
-                                    <Alert severity="warning" style={{ marginTop: "16px", marginBottom: "16px", width: "400px" }}>
+                                    <Alert severity="warning" style={{ marginTop: "16px", marginBottom: "16px", width: "420px" }}>
                                         <h3>Fix the following errors before submitting:</h3>
                                         <ul className="noMargin">
                                             {Object.keys(poolForm.errors).map(error => {
