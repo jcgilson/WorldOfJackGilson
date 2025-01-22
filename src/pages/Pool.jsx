@@ -1494,10 +1494,10 @@ const Pool = () => {
                     {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) &&
                         <div style={{ width: "85%" }}>
                             {/* Pool entry form */}
-                            <div className="flexColumn">
+                            <div className="flexColumn" style={{ width: "400px", margin: "0 auto" }}>
                                 {/* Submitted message */}
                                 {displayEntrySubmittedMessage && 
-                                    <Alert severity="success"style={{ marginTop: "16px", marginBottom: "16px", width: "400px" }}>
+                                    <Alert severity="success" style={{ marginTop: "16px", marginBottom: "16px", width: "370px" }}>
                                         Your entry was submitted successfully. Your selections have been saved if you would like to submit another entry.
                                     </Alert>
                                 }
@@ -1525,7 +1525,7 @@ const Pool = () => {
                                     variant="outlined"
                                     color="white"
                                     className="whiteButton"
-                                    style={{ width: "84px" }}
+                                    style={{ width: "84px", margin: "0 auto" }}
                                     disabled={(illustrativePlayers.length !== 6) || !poolForm.checkbox || (illustrativeSalaryCap > 100) || (displayPoolFormError && Object.keys(poolForm.errors).length > 0)}
                                     onClick={() => handleSubmitPoolEntry()}
                                 >
@@ -1580,7 +1580,7 @@ const Pool = () => {
 
                             {/* Illustrative player selection */}
                             <FormGroup>
-                                <ul style={{ marginTop: "0px", paddingLeft: "0", columnCount: "6", columnGap: "16px" }}>
+                                <ul style={{ marginTop: "0px", paddingLeft: "0", columnCount: screenWidth > 1480 ? "6" : screenWidth < 900 ? "2" : "3", columnGap: "16px" }}>
                                     {sortedDfsSalaries.map(player => {
                                         return (
                                             <li key={player.playerId} className={`flexRow alignCenter playerOption${!(illustrativePlayers.map(currentPlayer => currentPlayer.playerId)).includes(player.playerId) && illustrativePlayers.length == 6 ? " disabled" : ""}`} >
