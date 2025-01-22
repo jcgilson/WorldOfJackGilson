@@ -44,7 +44,10 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 // Testing
 // import { testScheduleResponse } from "../test/testScheduleResponse";
 // import { testTournamentResponse } from "../test/testTournamentResponse";
-// import { testLeaderboardResponse } from "../test/testLeaderboardResponse";
+import { testLeaderboardResponse } from "../test/testLeaderboardResponse";
+// console.log("testScheduleResponse",testScheduleResponse)
+// console.log("testTournamentResponse",testTournamentResponse)
+console.log("testLeaderboardResponse",testLeaderboardResponse)
 
 // Deploy steps
 // Publish latest commit to server
@@ -194,7 +197,7 @@ const Pool = () => {
     const [screenWidth, setScreenWidth] = useState(window.innerWidth); // Number - sets screen width for component dynamism
     const configuration = "mongo"; // String - Use "mongo" to fetch saved data, "rapidApi" to query new tournament info
     const actualYear = getActualYear(); // Used in case currentYear not available should calculate current year
-    const hardCodeDate = "01/21/25"; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
+    const hardCodeDate = null; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
     const [currentDate, setCurrentDate] = useState(null); // String
     const [currentYear, setCurrentYear] = useState(null); // String
     const displayPreviousTournamentForOneDay = true; // Boolean - Ability to (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer // TODO: Need to determine when Rapid API tournament info is available, same with DFS data
@@ -215,7 +218,7 @@ const Pool = () => {
     // API responses - can simply use rapidApi front end to get desired results and directly set to null state here
     const [preventScheduleRetries, setPreventScheduleRetries] = useState(false); // Boolean - prevents Rapid API from triggering mulitple schedule calls
     const [preventTournamentRetries, setPreventTournamentRetries] = useState(false); // Boolean - prevents Rapid API from triggering mulitple tournament calls
-    const [preventRetries, setPreventLeaderboardRetries] = useState(false); // Boolean - prevents Rapid API from triggering multiple leaderboard calls
+    const [preventLeaderboardRetries, setPreventLeaderboardRetries] = useState(false); // Boolean - prevents Rapid API from triggering multiple leaderboard calls
     
     const [scheduleResponse, setScheduleResponse] = useState(
         // NOT HARDCODING
@@ -269,6 +272,7 @@ const Pool = () => {
     const [displayEntrySubmittedMessage, setDisplayEntrySubmittedMessage] = useState(false) // Boolean - controls message displayed after pool entry is submitted
     const [displayPoolFormError, setDisplayPoolFormError] = useState(false); // Boolean - controls when pool form errors should be displayed (after submit attempt)
     const [illustrativePlayers, setIllustrativePlayers] = useState([]); // Array - list of illustrative players (not final)
+    const [filteredIllustrativePlayers, setFilteredIllustrativePlayers] = useState([]);
     const [illustrativeSalaryCap, setIllustrativeSalaryCap] = useState(0); // Number - salary cap used with all illustrative players
     const [expandSelectedPlayers, setExpandSelectedPlayers] = useState(false); // Boolean - controls expansion state of 
     const [snackbarMessages, setSnackbarMessages] = useState([]); // String
@@ -505,6 +509,7 @@ const Pool = () => {
             }
 
             setDfs(tempDfsObj);
+            setFilteredIllustrativePlayers(tempSortedDfsSalaries);
             setSortedDfsSalaries(tempSortedDfsSalaries);
             saveDfs(tempDfsObj);
         }
@@ -685,18 +690,17 @@ const Pool = () => {
     }
 
     const fetchMongoLeaderboard = async (currentYear, tournamentId, isReadyToGetUpdatedLeaderboardInfo = false, currentTournamentDay = null) => {
-        if (!setPreventTournamentRetries && currentYear && tournamentId) {
+        if (!preventLeaderboardRetries && currentYear && tournamentId) {
             setIsLeaderboardLoading(true);
             // Need to add timestamp to payload (in milliseconds)
             try {
-                // await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
                 await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
                     .then((response) => {
                         const timestamp = moment.utc().valueOf();
                         // Conditions for pulling an updated leaderboard below, otherwise set fetched leaderboard
                         if (
-                            // It's been at least an hour since last fetch
-                            ((timestamp - response.data.timestamp) > 3600000)
+                            // It's been at least 30 minutes since last fetch
+                            ((timestamp - response.data.timestamp) > 1800000)
                             // It's a tournament day
                             && isReadyToGetUpdatedLeaderboardInfo
                             // Round is not in "Official" (completed) status
@@ -705,19 +709,18 @@ const Pool = () => {
                             && !response.data.status !== "Official"
                         ) {
                             console.log("Leaderboard last fetched greater than 1 hour ago, about to fetch new leaderboard");
-                            setPreventTournamentRetries(true);
                             retrieveLeaderboardDataRapid();
                         } else {
                             // When not going to overwrite recently fetched leaderboard, set leaderboard and erase loading state
                             setLeaderboard(response.data);
                             setIsLeaderboardLoading(false);
                         }
+                        setPreventTournamentRetries(true);
                     })
             } catch (err) {
                 // Fetch new leaderboard when tournament in progress and no existing leaderboard is available
-                console.error(`Error fetching saved players${isReadyToGetUpdatedLeaderboardInfo && !preventRetries && ", attempting to fetch initial leaderboard"}`);
-                if (isReadyToGetUpdatedLeaderboardInfo && !preventRetries) {
-                    setPreventTournamentRetries(true);
+                console.error(`Error fetching saved leaderboard${isReadyToGetUpdatedLeaderboardInfo && !preventLeaderboardRetries && ", attempting to fetch initial leaderboard"}`);
+                if (isReadyToGetUpdatedLeaderboardInfo && !preventLeaderboardRetries) {
                     retrieveLeaderboardDataRapid();
                 } 
                 setIsLeaderboardLoading(false);
@@ -732,6 +735,7 @@ const Pool = () => {
                 await axios.get("https://worldofjack-server.onrender.com/get-dfs", { params: { year: currentYear, tournamentId: tournamentId }})
                     .then((response) => {
                         setDfs(response.data);
+                        setFilteredIllustrativePlayers(response.data.salaries);
                         setSortedDfsSalaries(response.data.salaries);
                         setIsDfsLoading(false);
                     })
@@ -908,53 +912,79 @@ const Pool = () => {
     const calculatePoolData = () => {
         let tempPoolData = [];
 
+        // Iterate each pool entry
         for (let i = 0; i < pool.length; i++) {
+            // Store selected players from below
             let players = [];
+            // Iterate all selected players
             for (let j = 0; j < pool[i].entryData.selectedPlayers.length; j++) {
+                // Find index of current player in leaderboard
                 const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === pool[i].entryData.selectedPlayers[j].playerId);
-                const playerLeaderboardInfo = leaderboard.leaderboard[playerLeaderboardIndex];
-                let tempPlayerObj = {
-                    salary: pool[i].entryData.selectedPlayers[j].salary,
-                    position: playerLeaderboardInfo.scoring.position,
-                    lastName: playerLeaderboardInfo.playerDemographics.lastName,
-                    firstName: playerLeaderboardInfo.playerDemographics.firstName,
-                    playerId: playerLeaderboardInfo.playerDemographics.playerId,
-                    totalScoreToPar: playerLeaderboardInfo.scoring.totalScoreToPar,
-                    thru: playerLeaderboardInfo.progress.thru,
-                    currentRoundScore: playerLeaderboardInfo.progress && playerLeaderboardInfo.progress.currentRoundScore ? playerLeaderboardInfo.progress.currentRoundScore : null,
-                    roundsUsed: []
-                };
-                for (let round = 0; round < 4; round++) {
-                    if (round < activeTournamentDay) {
-                        tempPlayerObj[`round${round + 1}`] = playerLeaderboardInfo.scoring.rounds && playerLeaderboardInfo.scoring.rounds[round]
-                            ? playerLeaderboardInfo.scoring.rounds[round].scoreToPar === "E"
-                                ? "0"
-                                : playerLeaderboardInfo.scoring.rounds[round].scoreToPar
-                            : playerLeaderboardInfo.progress.currentRoundScore
-                                ? playerLeaderboardInfo.progress.currentRoundScore
-                                : "-"
+                // Temporarily set current players' leaderboard info
+                if (playerLeaderboardIndex !== -1) {
+                    const playerLeaderboardInfo = leaderboard.leaderboard[playerLeaderboardIndex];
+                    // Create a new player obj containing leaderboard and salary info
+                    let tempPlayerObj = {
+                        salary: pool[i].entryData.selectedPlayers[j].salary,
+                        position: playerLeaderboardInfo.scoring.position,
+                        lastName: playerLeaderboardInfo.playerDemographics.lastName,
+                        firstName: playerLeaderboardInfo.playerDemographics.firstName,
+                        playerId: playerLeaderboardInfo.playerDemographics.playerId,
+                        totalScoreToPar: playerLeaderboardInfo.scoring.totalScoreToPar,
+                        thru: playerLeaderboardInfo.progress.thru,
+                        currentRoundScore: playerLeaderboardInfo.progress && playerLeaderboardInfo.progress.currentRoundScore ? playerLeaderboardInfo.progress.currentRoundScore : null,
+                        roundsUsed: []
+                    };
+                    // Iterate all rounds
+                    for (let round = 0; round < 4; round++) {
+                        // Evaluate if round data is available given progress in tournament
+                        if (round <= 3) {
+                            // If available, set round score
+                            tempPlayerObj[`round${round + 1}`] = playerLeaderboardInfo.scoring.rounds && playerLeaderboardInfo.scoring.rounds[round]
+                                ? playerLeaderboardInfo.scoring.rounds[round].scoreToPar === "E"
+                                    ? "0"
+                                    : playerLeaderboardInfo.scoring.rounds[round].scoreToPar
+                                : playerLeaderboardInfo.progress.currentRoundScore
+                                    ? playerLeaderboardInfo.progress.currentRoundScore
+                                    : "-"
+                        }
                     }
+                    // Save player to selected player info now that entire object with salaries, leaderboard info, and scores are saved
+                    players.push(tempPlayerObj);
                 }
-                players.push(tempPlayerObj);
             }
 
             // Array of arrays containing players whose round scores where counted
             let roundScoresUsedByPlayerIds = [];
 
+            // Begin populating all scores used by each player, iterating by round
             for (let round = 0; round < 4; round++) {
-                let allRoundScores = [];
-                for (let i = 0; i < players.length; i++) {
-                    const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === players[i].playerId);
-                    allRoundScores.push({
-                        playerId: players[i].playerId,
-                        thru: leaderboard.leaderboard[playerLeaderboardIndex].progress.thru ? leaderboard.leaderboard[playerLeaderboardIndex].progress.thru : "-",
-                        scoreToPar: players[i][`round${round + 1}`]
-                    })
+                if ((round + 1) <= activeTournamentDay) {
+                    // Temporarily store all player scores for each round
+                    let allRoundScores = [];
+                    // Begin by iterating every available players
+                    for (let i = 0; i < players.length; i++) {
+                        // Find player index in leaderboard data
+                        const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === players[i].playerId);
+                        // Push current players round scores to array
+                        allRoundScores.push({
+                            playerId: players[i].playerId,
+                            thru: leaderboard.leaderboard[playerLeaderboardIndex].progress.thru ? leaderboard.leaderboard[playerLeaderboardIndex].progress.thru : "-",
+                            scoreToPar:  ["WD", "CUT"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position) && !players[i][`round${round + 1}`]
+                                ? 18 // Round score is 18 for cut players
+                                : (leaderboard.leaderboard[playerLeaderboardIndex].scoring.position === "-" || !players[i][`round${round + 1}`])
+                                    ? 0 // When round not started, score is 0 (E)
+                                    : players[i][`round${round + 1}`]
+                        });
+                    }
+                    // Sort current round scores by score  
+                    allRoundScores = allRoundScores.sort((a, b) => (a.scoreToPar === "-" ? 18 : a.scoreToPar === "E" ? 0 : parseInt(a.scoreToPar)) - (b.scoreToPar === "-" ? 18 : b.scoreToPar === "E" ? 0 : parseInt(b.scoreToPar)));
+                    // Push the 4 used scores to final array
+                    roundScoresUsedByPlayerIds.push(allRoundScores.slice(0, 4));
                 }
-                allRoundScores = allRoundScores.sort((a, b) => (a.scoreToPar === "-" ? 18 : a.scoreToPar === "E" ? 0 : parseInt(a.scoreToPar)) - (b.scoreToPar === "-" ? 18 : b.scoreToPar === "E" ? 0 : parseInt(b.scoreToPar)));
-                roundScoresUsedByPlayerIds.push(allRoundScores.slice(0, 4));
             }
 
+            // Temp object to calculate cumulative round scores
             let tempScoringObj = {
                 totalScoreToPar: 0,
                 round1: 0,
@@ -963,15 +993,24 @@ const Pool = () => {
                 round4: 0,
             }
 
+            // Begin by iterating each round
             for (let round = 0; round < 4; round++) {
-                for (let i = 0; i < roundScoresUsedByPlayerIds[round].length; i++) {
-                    const playerCurrentRoundScoreToPar = (!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-") ? 18 : roundScoresUsedByPlayerIds[round][i].scoreToPar === "E" ? 0 : parseInt(roundScoresUsedByPlayerIds[round][i].scoreToPar);
-                    tempScoringObj[`round${round + 1}`] = tempScoringObj[`round${round + 1}`] + playerCurrentRoundScoreToPar;
-                    tempScoringObj.totalScoreToPar = tempScoringObj.totalScoreToPar + playerCurrentRoundScoreToPar;
-                    const playerIndex = players.findIndex(player => player.playerId == roundScoresUsedByPlayerIds[round][i].playerId);
-                    players[playerIndex] = {
-                        ...players[playerIndex],
-                        roundsUsed: [...players[playerIndex].roundsUsed, round + 1]
+                // Iterate each score used for that round
+                if ((round + 1) <= activeTournamentDay) {
+                    for (let i = 0; i < roundScoresUsedByPlayerIds[round].length; i++) {
+                        // Store current players score to par
+                        const playerCurrentRoundScoreToPar = (!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-") ? 18 : roundScoresUsedByPlayerIds[round][i].scoreToPar === "E" ? 0 : parseInt(roundScoresUsedByPlayerIds[round][i].scoreToPar);
+                        // Save current players score to par
+                        tempScoringObj[`round${round + 1}`] = tempScoringObj[`round${round + 1}`] + playerCurrentRoundScoreToPar;
+                        // Save current players total score to par
+                        tempScoringObj.totalScoreToPar = tempScoringObj.totalScoreToPar + playerCurrentRoundScoreToPar;
+                        // Save player index in list of selected players
+                        const playerIndex = players.findIndex(player => player.playerId == roundScoresUsedByPlayerIds[round][i].playerId);
+                        // Save current round scores counted for current player
+                        players[playerIndex] = {
+                            ...players[playerIndex],
+                            roundsUsed: [...players[playerIndex].roundsUsed, round + 1]
+                        }
                     }
                 }
             }
@@ -983,27 +1022,35 @@ const Pool = () => {
 
                 // Iterate each round
                 for (let round = 0; round < roundScoresUsedByPlayerIds.length; round++) {
-                    // 
+                    // Save index of player score being counted in list of selected players 
                     const countedScoreIndex = roundScoresUsedByPlayerIds[round].findIndex(countedScorePlayer => countedScorePlayer.playerId === players[i].playerId);
+                    // If that player has a score which hasbeen used 
                     if (countedScoreIndex !== -1) {
+                        // Begin to save score used
                         let tempScoreToBeAdded = 0;
                         if (roundScoresUsedByPlayerIds[round][countedScoreIndex].scoreToPar === "-") {
+                            // If no score is available, use 18
                             tempScoreToBeAdded = 18;
                         } else if (roundScoresUsedByPlayerIds[round][countedScoreIndex].scoreToPar === "E") {
+                            // If "E", save as 0 scoreToPar
                             tempScoreToBeAdded = 0;
                         } else {
+                            // Otherwise save raw value
                             tempScoreToBeAdded = parseInt(roundScoresUsedByPlayerIds[round][countedScoreIndex].scoreToPar);
                         }
+                        // Store total score being used for player
                         tempCountedScoreToPar = tempCountedScoreToPar + tempScoreToBeAdded;
                     }
                 }                
 
+                // Save player info
                 players[i] = {
                     ...players[i],
                     countedScoreToPar: tempCountedScoreToPar
                 }
             }
 
+            // Set single pool entry data
             tempPoolData.push({
                 name: pool[i].entryData.name,
                 salaryCapUsed: pool[i].entryData.salaryCapUsed,
@@ -1047,9 +1094,8 @@ const Pool = () => {
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_93236d46-7a6c-4406-aa79-d333d08b717e
         
         if (currentYear && !preventScheduleRetries) {
-            setPreventScheduleRetries(true);
             setIsScheduleLoading(true);
-    
+            
             const options = {
                 method: 'GET',
                 url: 'https://live-golf-data.p.rapidapi.com/schedule',
@@ -1068,9 +1114,11 @@ const Pool = () => {
                 const response = await axios.request(options);
                 setScheduleResponse(response.data);
                 setIsScheduleLoading(false);
+                setPreventScheduleRetries(true);
             } catch (error) {
                 console.error(error);
                 setIsScheduleLoading(false);
+                setPreventScheduleRetries(true);
             }
         }
     }
@@ -1122,7 +1170,7 @@ const Pool = () => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_a6e32f80-75c7-4c35-ab1b-bbd685ee82f3
 
-        if (highlightedTournamentId && currentYear && !setPreventLeaderboardRetries) {
+        if (highlightedTournamentId && currentYear && !preventLeaderboardRetries) {
             setIsLeaderboardLoading(true);
     
             const options = {
@@ -1144,6 +1192,7 @@ const Pool = () => {
                 const response = await axios.request(options);
                 setLeaderboardResponse(response.data);
                 setIsLeaderboardLoading(false);
+                setPreventLeaderboardRetries(true);
             } catch (error) {
                 setPreventLeaderboardRetries(true);
                 console.error(error);
@@ -1258,6 +1307,7 @@ const Pool = () => {
         }
 
         setSortedDfsSalaries(tempSortedDfsSalaries);
+        setFilteredIllustrativePlayers(tempSortedDfsSalaries);
     }
 
     const handleSetIllustrativePlayers = (player) => {
@@ -1288,6 +1338,7 @@ const Pool = () => {
         }
 
         setIllustrativePlayers(tempIllustrativePlayers);
+        setFilteredIllustrativePlayers(tempIllustrativePlayers);
         setIllustrativeSalaryCap(tempIllustrativeSalaryCap);
     }
 
@@ -1397,12 +1448,43 @@ const Pool = () => {
         }
     };
 
+    // const handleSearchIllustrativePlayers = (query) => {
+    //     const queryWithoutSpaces = query.replace(" ", "");
+    //     const queryWithoutSpacesLowerCase = queryWithoutSpaces.toLowerCase();
+    //     let tempFilteredIllustrativePlayers = [];
+
+    //     console.log("\n\nsortedDfsSalaries",sortedDfsSalaries)
+    //     console.log("queryWithoutSpaces",queryWithoutSpaces)
+
+
+    //     for (let i = 0; i < sortedDfsSalaries.length; i++) {
+    //         const currentPlayerFirstName = sortedDfsSalaries[i].firstName;
+    //         const currentPlayerLastName = sortedDfsSalaries[i].lastName;
+    //         const currentPlayerFirstNameWithoutSpaces = currentPlayerFirstName.replace(" ", "");
+    //         const currentPlayerLastNameWithoutSpaces = currentPlayerLastName.replace(" ", "");
+    //         const currentPlayerFirstNameWithoutSpacesLowerCase = currentPlayerFirstNameWithoutSpaces.toLowerCase();
+    //         const currentPlayerLastNameWithoutSpacesLowerCase = currentPlayerLastNameWithoutSpaces.toLowerCase();
+    //         const currentPlayerNameWithoutSpaces = `${currentPlayerFirstNameWithoutSpacesLowerCase}${currentPlayerLastNameWithoutSpacesLowerCase}`;
+    //         console.log("currentPlayerNameWithoutSpaces",currentPlayerNameWithoutSpaces)
+    //         console.log("currentPlayerNameWithoutSpaces",currentPlayerNameWithoutSpaces)
+    //         if (currentPlayerNameWithoutSpaces.includes(queryWithoutSpacesLowerCase)) {
+    //             filteredIllustrativePlayers.push(sortedDfsSalaries[i]);
+    //         }
+    //     }
+
+    //     console.log("tempFilteredIllustrativePlayers",tempFilteredIllustrativePlayers)
+
+    //     setFilteredIllustrativePlayers(tempFilteredIllustrativePlayers);
+    // }
+
 
     // END UI FUNCTIONS
 
 
     // START RENDER FUNCTION
 
+    console.log("poolLeaderboard",poolLeaderboard)
+    console.log("leaderboard",leaderboard)
 
     return (
         <div className="flexColumn alignCenter paddingBottomMassive golf pool">
@@ -1416,7 +1498,7 @@ const Pool = () => {
                             <Select
                                 labelId="demo-multiple-checkbox-label"
                                 id="scheduleDropdown"
-                                deafultValue={highlightedTournamentId}
+                                defaultValue={highlightedTournamentId}
                                 value={activeTournamentId}
                                 onChange={(e) => setActiveTournamentId(e.target.value)}
                             >
@@ -1536,7 +1618,7 @@ const Pool = () => {
                             <Divider className="marginTopExtraLarge" color="white" />
 
                             {/* Instructions and sorting */}
-                            <div className="width100Percent flexRow justifySpaceBetween alignCenter" style={{ margin: "0 auto" }}>
+                            <div className="width100Percent flexRow justifySpaceBetween alignCenter" style={{ margin: "16px auto" }}>
                                 <div className="flexRow">
                                     <h2 className="whiteFont">Select 6 players staying under the $100 salary cap</h2>
                                     <Tooltip
@@ -1551,7 +1633,8 @@ const Pool = () => {
                                         <InfoIcon fontSize="small" className="whiteFont marginLeftMedium" />
                                     </Tooltip>
                                 </div>
-                                <div className="flexRow alignCenter marginTopMedium marginBottomMedium">
+                                {/* <TextField value="" id="outlined-basic" label="Search Players" variant="outlined" onChange={(e) => handleSearchIllustrativePlayers(e.target.value)} /> */}
+                                <div className="flexRow alignCenter marginTopExtraLarge marginBottomMedium">
                                     <h3 className="whiteFont paddingBottomExtraSmall">Sort by</h3>
                                     <div className="flexRow alignCenter marginLeftSmall" onClick={() => handleDfsSortMethod("salary")}>
                                         <div style={{ width: "24px" }}>
@@ -1581,7 +1664,7 @@ const Pool = () => {
                             {/* Illustrative player selection */}
                             <FormGroup>
                                 <ul style={{ marginTop: "0px", paddingLeft: "0", columnCount: screenWidth > 1480 ? "6" : screenWidth < 900 ? "2" : "3", columnGap: "16px" }}>
-                                    {sortedDfsSalaries.map(player => {
+                                    {filteredIllustrativePlayers.map(player => {
                                         return (
                                             <li key={player.playerId} className={`flexRow alignCenter playerOption${!(illustrativePlayers.map(currentPlayer => currentPlayer.playerId)).includes(player.playerId) && illustrativePlayers.length == 6 ? " disabled" : ""}`} >
                                                 <FormControlLabel
