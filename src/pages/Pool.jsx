@@ -1483,8 +1483,8 @@ const Pool = () => {
 
     // START RENDER FUNCTION
 
-    console.log("poolLeaderboard",poolLeaderboard)
-    console.log("leaderboard",leaderboard)
+    // console.log("poolLeaderboard",poolLeaderboard)
+    // console.log("leaderboard",leaderboard)
 
     return (
         <div className="flexColumn alignCenter paddingBottomMassive golf pool">
