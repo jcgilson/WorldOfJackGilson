@@ -44,10 +44,10 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 // Testing
 // import { testScheduleResponse } from "../test/testScheduleResponse";
 // import { testTournamentResponse } from "../test/testTournamentResponse";
-// import { testLeaderboardResponse } from "../test/testLeaderboardResponse";
+import { testLeaderboardResponse } from "../test/testLeaderboardResponse";
 // console.log("testScheduleResponse",testScheduleResponse)
 // console.log("testTournamentResponse",testTournamentResponse)
-// console.log("testLeaderboardResponse",testLeaderboardResponse)
+console.log("testLeaderboardResponse",testLeaderboardResponse)
 
 // Deploy steps
 // Publish latest commit to server
@@ -61,6 +61,7 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
     // Derive allPlayers from dfsSalaries
     // Search "ADD SUGGESTION BOX HERE" to add additional suggestion box text area field
         // Remove payment checkbox temporarily
+    // Allow edits to scorecard up until submitted
 
 
 // Next steps
@@ -193,6 +194,9 @@ const Pool = () => {
     const [poolLeaderboardUpdated, setPoolLeaderboardUpdated] = useState(false); // Boolean - prevents pool leaderboard from re-rendering
     const [leaderboardIsExpanded, setLeaderboardIsExpanded] = useState(false); // Boolean - controls when all leaderboard rows should be displayed if longer than pool leaderboard row count
 
+    // Controls for display pool entry form
+    const [readyToCalculateDfsSalaries, setReadyToCalculateDfsSalaries] = useState(false); // Boolean - if players are available and DFS salaries have not already been stored to mongo, begin calculations 
+    
     // UI interaction states
     const [highlightedTournamentId, setHighlightedTournamentId] = useState(null); // String
     const [activeTournamentId, setActiveTournamentId] = useState(null); // String
@@ -209,9 +213,6 @@ const Pool = () => {
     const [expandSelectedPlayers, setExpandSelectedPlayers] = useState(false); // Boolean - controls expansion state of 
     const [snackbarMessages, setSnackbarMessages] = useState([]); // String
     
-    // Controls for display pool entry form
-    const [readyToCalculateDfsSalaries, setReadyToCalculateDfsSalaries] = useState(false); // Boolean - if players are available and DFS salaries have not already been stored to mongo, begin calculations 
-
     
     // END USESTATES
 
@@ -241,7 +242,7 @@ const Pool = () => {
             // setReadyToCalculateDfsSalaries(true)
             
             // --HARDCODE leaderboardReponse
-            // calculateLeaderboardData();
+            calculateLeaderboardData();
 
             // END HARDCODED BLOCK
             
@@ -283,6 +284,9 @@ const Pool = () => {
                 const currentTournament = schedule.schedule[i];
                 const start = new Date(currentTournament.startDate);
                 const end = new Date(currentTournament.endDate);
+                console.log("current",current)
+                console.log("start",start)
+                console.log("end",end)
                 // Date matches start or end date
                 if ((current - start == 0) || (current - end == 0) || (i == schedule.schedule.length - 1)) {
                     if (current - start == 0) currentTournamentDay = 1;
@@ -344,6 +348,7 @@ const Pool = () => {
             fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
             fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
             fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
+            console.log("currentTournamentDay",currentTournamentDay)
             if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
         }
     }, [schedule]);
@@ -585,18 +590,38 @@ const Pool = () => {
                 await axios.get("https://worldofjack-server.onrender.com/get-leaderboard", { params: { year: currentYear, tournamentId: tournamentId }})
                     .then((response) => {
                         const timestamp = moment.utc().valueOf();
+                        
+                        // Identify next closest teeTimestamp
+                        // let earliestTeeTimestamp = null;
+                        // console.log("response.data",response.data)
+                        // for (let i = 0; i < response.data.leaderboard.length; i++) {
+                        //     console.log("-----!earliestTeeTimestamp", !earliestTeeTimestamp)
+                        //     if (!earliestTeeTimestamp || (response.data.leaderboard[i].tournamentInfo.teeTimestamp < earliestTeeTimestamp)) {
+                        //         console.log("\n\nplayer:", response.data.leaderboard[i].playerDemographics.firstName,response.data.leaderboard[i].playerDemographics.lastName)
+                        //         console.log("timestamp:", response.data.leaderboard[i].tournamentInfo.teeTimestamp)
+                        //         earliestTeeTimestamp = response.data.leaderboard[i].tournamentInfo.teeTimestamp;
+                        //     }
+                        // }
+                        // console.log("earliestTeeTimestamp",earliestTeeTimestamp)
+                        
+
                         // Conditions for pulling an updated leaderboard below, otherwise set fetched leaderboard
                         if (
-                            // It's been at least 20 minutes since last fetch
-                            ((timestamp - response.data.timestamp) > 1200000)
-                            // It's a tournament day
-                            && isReadyToGetUpdatedLeaderboardInfo
-                            // Round is not in "Official" (completed) status
-                            && ((currentTournamentDay === response.data.roundId) && (response.data.roundStatus !== "Official"))
-                            // Tournament is not complete
-                            && response.data.status !== "Official"
+                            (
+                                // It's been at least 20 minutes since last fetch
+                                ((timestamp - response.data.timestamp) > 1200000)
+                                // It's a tournament day
+                                && isReadyToGetUpdatedLeaderboardInfo
+                                // Round is not in "Official" (completed) status
+                                && ((currentTournamentDay === response.data.roundId) && (response.data.roundStatus !== "Official"))
+                                // Tournament is not complete
+                                && response.data.status !== "Official"
+                            )
+                            || (currentTournamentDay && (response.data.roundId < currentTournamentDay))
+
+
                         ) {
-                            console.log("Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
+                            console.log("****************Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
                             retrieveLeaderboardDataRapid();
                         } else {
                             // When not going to overwrite recently fetched leaderboard, set leaderboard and erase loading state
@@ -728,6 +753,8 @@ const Pool = () => {
             const tempLeaderboard = []
             for (let i = 0; i < responseLeaderboard.length; i++) {
                 const currentPlayer = responseLeaderboard[i];
+                console.log("responseLeaderboard",responseLeaderboard)
+                console.log("currentPlayer.teeTimeTimestamp",currentPlayer.teeTimeTimestamp)
                 tempLeaderboard.push({
                     playerDemographics: {
                         firstName: currentPlayer.firstName || null,
@@ -737,6 +764,7 @@ const Pool = () => {
                     },
                     tournamentInfo: {
                         teeTime: currentPlayer.teeTime || null,
+                        teeTimestamp: currentPlayer.teeTimeTimestamp || null,
                         courseId: currentPlayer.courseId || null,
                     },
                     scoring: {
@@ -826,7 +854,10 @@ const Pool = () => {
                         // Find player index in leaderboard data
                         const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === players[i].playerId);
                         // Push current players round scores to array
+                        console.log("**current player", leaderboard.leaderboard[playerLeaderboardIndex])
                         allRoundScores.push({
+                            // add round status here
+                            playerIsCutOrWd: ["CUT", "WD"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position),
                             playerId: players[i].playerId,
                             thru: leaderboard.leaderboard[playerLeaderboardIndex].progress.thru ? leaderboard.leaderboard[playerLeaderboardIndex].progress.thru : "-",
                             scoreToPar:  ["WD", "CUT"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position) && !players[i][`round${round + 1}`]
@@ -858,7 +889,8 @@ const Pool = () => {
                 if ((round + 1) <= activeTournamentDay) {
                     for (let i = 0; i < roundScoresUsedByPlayerIds[round].length; i++) {
                         // Store current players score to par
-                        const playerCurrentRoundScoreToPar = (!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-") ? 18 : roundScoresUsedByPlayerIds[round][i].scoreToPar === "E" ? 0 : parseInt(roundScoresUsedByPlayerIds[round][i].scoreToPar);
+                        // in first or statement, double check round status !== not started
+                        const playerCurrentRoundScoreToPar = (!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-" && roundScoresUsedByPlayerIds.playerIsCutOrWd) ? 18 : ((!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-")) ? 0 : roundScoresUsedByPlayerIds[round][i].scoreToPar === "E" ? 0 : parseInt(roundScoresUsedByPlayerIds[round][i].scoreToPar);
                         // Save current players score to par
                         tempScoringObj[`round${round + 1}`] = tempScoringObj[`round${round + 1}`] + playerCurrentRoundScoreToPar;
                         // Save current players total score to par
@@ -1340,7 +1372,7 @@ const Pool = () => {
 
     // START RENDER FUNCTION
 
-    
+
     return (
         <div className="flexColumn alignCenter paddingBottomMassive golf pool">
             {/* Display loader when fetching data */}
@@ -1588,10 +1620,10 @@ const Pool = () => {
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={1}>{i + 1}</TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={2}>${entry.salaryCapUsed}</TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={3}>{entry.name}</TableCell>
-                                                        <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={4}>{entry.scoring.round1}</TableCell>
-                                                        {leaderboard.roundId > 1 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={5}>{entry.scoring.round2}</TableCell>}
-                                                        {leaderboard.roundId > 2 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={6}>{entry.scoring.round3}</TableCell>}
-                                                        {leaderboard.roundId > 3 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={7}>{entry.scoring.round4}</TableCell>}
+                                                        <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={4}>{entry.scoring.round1 === "0" ? "E" : entry.scoring.round1 > 0 ? `+${entry.scoring.round1}` : entry.scoring.round1}</TableCell>
+                                                        {leaderboard.roundId > 1 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={5}>{entry.scoring.round2 === "0" ? "E" : entry.scoring.round2 > 0 ? `+${entry.scoring.round2}` : entry.scoring.round2}</TableCell>}
+                                                        {leaderboard.roundId > 2 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={6}>{entry.scoring.round3 === "0" ? "E" : entry.scoring.round3 > 0 ? `+${entry.scoring.round3}` : entry.scoring.round3}</TableCell>}
+                                                        {leaderboard.roundId > 3 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={7}>{entry.scoring.round4 === "0" ? "E" : entry.scoring.round4 > 0 ? `+${entry.scoring.round4}` : entry.scoring.round4}</TableCell>}
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={8}></TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={9}>{entry.scoring.totalScoreToPar}</TableCell>
                                                     </TableRow>

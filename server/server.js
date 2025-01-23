@@ -1,5 +1,5 @@
 // server.js
-// import { uri } from "./uri.js";
+import { uri } from "./uri.js";
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -23,8 +23,8 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB URI (Replace with your MongoDB Atlas URI or local URI)
-// const mongoURI = uri; // local env (import above)
-const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
+const mongoURI = uri; // local env (import above)
+// const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
 // const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_GOLF; // deployed GOLF env
 
 // Connect to MongoDB
