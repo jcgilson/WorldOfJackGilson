@@ -47,7 +47,7 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 import { testLeaderboardResponse } from "../test/testLeaderboardResponse";
 // console.log("testScheduleResponse",testScheduleResponse)
 // console.log("testTournamentResponse",testTournamentResponse)
-console.log("testLeaderboardResponse",testLeaderboardResponse)
+// console.log("testLeaderboardResponse",testLeaderboardResponse)
 
 // Deploy steps
 // Publish latest commit to server
@@ -348,7 +348,6 @@ const Pool = () => {
             fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
             fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
             fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
-            console.log("currentTournamentDay",currentTournamentDay)
             if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
         }
     }, [schedule]);
