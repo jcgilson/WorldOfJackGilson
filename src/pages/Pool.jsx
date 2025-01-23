@@ -851,7 +851,6 @@ const Pool = () => {
                         // Find player index in leaderboard data
                         const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === players[i].playerId);
                         // Push current players round scores to array
-                        console.log("**current player", leaderboard.leaderboard[playerLeaderboardIndex])
                         allRoundScores.push({
                             // add round status here
                             playerIsCutOrWd: ["CUT", "WD"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position),
