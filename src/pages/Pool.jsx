@@ -617,7 +617,7 @@ const Pool = () => {
 
 
                         ) {
-                            console.log("****************Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
+                            console.log("Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
                             retrieveLeaderboardDataRapid();
 
                         } else {
@@ -750,8 +750,8 @@ const Pool = () => {
             const tempLeaderboard = []
             for (let i = 0; i < responseLeaderboard.length; i++) {
                 const currentPlayer = responseLeaderboard[i];
-                console.log("responseLeaderboard",responseLeaderboard)
-                console.log("currentPlayer.teeTimeTimestamp",currentPlayer.teeTimeTimestamp)
+                // console.log("responseLeaderboard",responseLeaderboard)
+                // console.log("currentPlayer.teeTimeTimestamp",currentPlayer.teeTimeTimestamp)
                 tempLeaderboard.push({
                     playerDemographics: {
                         firstName: currentPlayer.firstName || null,
@@ -852,7 +852,7 @@ const Pool = () => {
                         const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === players[i].playerId);
                         // Push current players round scores to array
                         allRoundScores.push({
-                            // add round status here
+                            // When player has no current score, use 0 unless position CUT or WD, then use 18
                             playerIsCutOrWd: ["CUT", "WD"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position),
                             playerId: players[i].playerId,
                             thru: leaderboard.leaderboard[playerLeaderboardIndex].progress.thru ? leaderboard.leaderboard[playerLeaderboardIndex].progress.thru : "-",
@@ -906,7 +906,6 @@ const Pool = () => {
             for (let i = 0; i < players.length; i++) {
                 // Store total strokes to par current player has contributed to total score
                 let tempCountedScoreToPar = 0;
-
                 // Iterate each round
                 for (let round = 0; round < roundScoresUsedByPlayerIds.length; round++) {
                     // Save index of player score being counted in list of selected players 
