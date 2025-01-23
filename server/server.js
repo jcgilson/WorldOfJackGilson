@@ -1,5 +1,5 @@
 // server.js
-import { uri } from "./uri.js";
+// import { uri } from "./uri.js";
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -14,7 +14,6 @@ const CourseInfoCollection = require('./models/CourseInfo');
 
 const ScheduleCollection = require('./models/Schedule');
 const PlayersCollection = require('./models/Players');
-const CoursesCollection = require('./models/Courses');
 const LeaderboardCollection = require('./models/Leaderboard');
 const DfsCollection = require('./models/Dfs');
 const PoolsCollection = require('./models/Pools');
@@ -24,8 +23,8 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB URI (Replace with your MongoDB Atlas URI or local URI)
-const mongoURI = uri; // local env (import above)
-// const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
+// const mongoURI = uri; // local env (import above)
+const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
 // const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_GOLF; // deployed GOLF env
 
 // Connect to MongoDB
@@ -181,30 +180,6 @@ app.put('/add-players', async (req, res) => {
   }
 });
 
-// PUT route to add courses
-app.put('/add-courses', async (req, res) => {
-  try {
-    const result = await CoursesCollection.findOneAndUpdate(
-      { "tournamentId": req.body.tournamentId, "year": req.body.year },
-      { $set: 
-        {
-          year: req.body.year,
-          tournamentId: req.body.tournamentId,
-          courses: req.body.courses
-        }
-      },
-      { new: true, upsert: true }
-    )
-    if (result) {
-      res.json({ message: 'Courses saved' });
-    } else {
-      res.json({ message: 'Courses not saved' });
-    }
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
 // PUT route to add leaderboard
 app.put('/add-leaderboard', async (req, res) => {
   try {
@@ -278,16 +253,6 @@ app.get('/get-schedule', async (req, res) => {try {
     return res.json(schedule);
   } catch (error) {
     res.status(500).send("Server error while fetching schedule from Mongo");
-  }
-});
-
-// GET route to fetch tournament courses
-app.get('/get-courses', async (req, res) => {try {
-  const courses = await CoursesCollection.findOne({ year: req.query.year, tournamentId: req.query.tournamentId });
-    if (!courses) return res.status(404).send(`Courses not found`);
-    return res.json(courses);
-  } catch (error) {
-    res.status(500).send("Server error while fetching courses from Mongo");
   }
 });
 

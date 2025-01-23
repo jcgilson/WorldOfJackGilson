@@ -55,41 +55,17 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 // Publish latest commit to Netlify
     // https://app.netlify.com/sites/worldofjackgilson/deploys
 
+
+// For next tournament
+    // Make players list searchable
+    // Derive allPlayers from dfsSalaries
+    // Search "ADD SUGGESTION BOX HERE" to add additional suggestion box text area field
+        // Remove payment checkbox temporarily
+
+
 // Next steps
-// Hide illustrative player selection when tournament in progress (might need to add state)
-    // Also need more validations for fields not added
-        // Begin storing entries to mongo
-            // Then fetch pool data
-                // Create live pool display (pulling latest leaderboard data should world) - as part of this, identify if courses differ for each player between R1/R2/R3/R4
-                    // At end of each day (if round status is complete), trigger pull of data 
 // Email template
 
-
-// Stableford
-// could get scorecard data ONLY for selected golfers, for all others, "no one has selected this player"
-// Calculate at end of each day? Not good for following live leaderboard - would cost a LOT to upgrade
-    // For each player, would need to pull 4 times per day (16 per tournament)
-        // Could display leaderboard and calculate stableford at end of day 
-            // Would still require pull for every player
-
-// Link to monitor Rapid API requests (60 starting 1/14/2025)
-// https://rapidapi.com/developer/analytics/default-application_10075500
-
-
-// After tournament wraps, could begin savings player scoring averages
-    // Could fetch some legacy rounds if I still have fetches left for month
-        // 1 needed for year schedule, 2 more for each tournament to pull tournamentData and leaderboardData
-    // "Cut % made since X data" (5/6)
-    // EV = salary / strokes under par (can't use old DFS salaries for these calulations)
-        // Is there strenth of schedule
-
-
-// Determine when to fetch new leaderboard data
-    // Can be based on of "Tournament in progress"
-    // Starting at X time of day, fetch every Y interval until Z time of day
-// Also, when fetching tournament data, date checks for when to fetch tournament data may not work as expected
-    // Need to accommodate that tournament has wrapped - should store a tournament "status" with leaderboard data
-    
 
 // Pricing $25 for first tournament, $20 after - tries to retain players
     // Helps keep the lights on (tooltip: server cost to host site, rapid API call pricing)
@@ -110,47 +86,7 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 // Frontend should automatically display form when DFS data is available (should already have players from above section)
 
 
-// Need to print list of players not yet found - should be excluded from form?
-
-
-
-
-
-// Could beginmaking "predictive analysis" with ability to assign weight to various metrics (maybe using data golf)
-    // 10% of "score" is previous 3 tournament results
-    // 10% previous results at same tournament
-    // 10% driving distance (weighted based on tournament)
-    // 10% FPM putting
-    // etc.
-
-
-
-// CRON job for fetching new data?
-    // first need to query /tournament endpoint (contains players)
-        // Once tournament starts, pull from /leaderboards endpoint
-
-
-
-
-// 500 is limit for month
-// most tournament days in a month in 19
-// Assuming I can calculate exact start time (and one final pull at 9pm EST to account for all update),
-// could have 1 request every 20 minutes
-
-// 500/20 = 25
-
-// 1 data pull per year for schedule
-// 10 data pulls per month for players
-// 10 data pull per
-
-
 // Can begin also pulling in other data from rapidapi (points/earnings/fedex rankings/world ranking - display table to arrange?)
-
-
-
-// Allow for excel file upload - make google form first
-// Then save to mongo
-// Then pull in to page - accommodate for when "data is not available"
 
 
 
@@ -170,7 +106,6 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
                                     // Saves response to tournamentResponse
                                         // Triggers useEffect [tournamentResponse]
                                             // Calls calculatePlayerData() and saves players to mongo
-                                            // Calls calculateCourseData() and saves courses to mongo
                                             // Calls retrieveLeaderboardDataRapid() - gets current tournaments leaderboard
                                                 // Saves response to leaderboardResponse
                                                     // Triggers useEffect [leaderboardResponse]
@@ -178,11 +113,10 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
                                                             // Saves leaderboard to mongo
 
 // CONFIGURATION === "mongo"
-    // Initialization calls fetchMongoData()
+    // Initialization calls fetchMongoSchedule()
         // Calls setSchedule() in local state
-            // Identifies closest active tournament and calls setActiveTournamentId() and setHighlightedTournamentId() in local state
-            // Calls fetchMongoCourses() - sets courses in local state
-            // Calls fetchMongoPlayers() - sets courses in local state, fetch DFS data if salaries are available in useEffect [allPlayers]
+            // Triggers useEffect [schedule] - Identifies closest active tournament and calls setActiveTournamentId() and setHighlightedTournamentId() in local state
+            // Calls fetchMongoPlayers() - sets players in local state, fetch DFS data if salaries are available in useEffect [allPlayers]
             // Calls fetchMongoLeaderboard() - sets leaderboard in local state
 
 const getActualYear = () => {
@@ -197,7 +131,7 @@ const Pool = () => {
     const [screenWidth, setScreenWidth] = useState(window.innerWidth); // Number - sets screen width for component dynamism
     const configuration = "mongo"; // String - Use "mongo" to fetch saved data, "rapidApi" to query new tournament info
     const actualYear = getActualYear(); // Used in case currentYear not available should calculate current year
-    const hardCodeDate = "01/22/2025"; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
+    const hardCodeDate = null; // String - Set to null when not in use, otherwise format "MM/DD/YY" (example: "01/01/25")
     const [currentDate, setCurrentDate] = useState(null); // String
     const [currentYear, setCurrentYear] = useState(null); // String
     const displayPreviousTournamentForOneDay = true; // Boolean - Ability to (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer // TODO: Need to determine when Rapid API tournament info is available, same with DFS data
@@ -208,7 +142,6 @@ const Pool = () => {
     // Loading states
     const [isLoading, setIsLoading] = useState(true); // Boolean
     const [isScheduleLoading, setIsScheduleLoading] = useState(false); // Boolean
-    const [isCoursesLoading, setIsCoursesLoading] = useState(false); // Boolean
     const [isAllPlayersLoading, setIsAllPlayersLoading] = useState(false); // Boolean
     const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false); // Boolean
     const [isDfsLoading, setIsDfsLoading] = useState(false); // Boolean
@@ -251,7 +184,6 @@ const Pool = () => {
     // Mongo/Rapid API data
     const [schedule, setSchedule] = useState(null); // Object
     const [allPlayers, setAllPlayers] = useState(null); // Object
-    const [courses, setCourses] = useState(null); // Object
     const [leaderboard, setLeaderboard] = useState(null); // Object
     const [dfs, setDfs] = useState(null); // Object
 
@@ -268,7 +200,7 @@ const Pool = () => {
     const [dfsSortMethod, setDfsSortMethod] = useState("salary"); // String - sort players by "salary" or "name" 
     const [dfsSortOrder, setDfsSortOrder] = useState("descending"); // String - "ascending" vs "descending"
     const [sortedDfsSalaries, setSortedDfsSalaries] = useState([]); // Array - contains list of all player DFS salaries
-    const [poolForm, setPoolForm] = useState({errors: {}}); // Object - contains all current pool form data
+    const [poolForm, setPoolForm] = useState({errors: {}, checkbox: true}); // Object - contains all current pool form data
     const [displayEntrySubmittedMessage, setDisplayEntrySubmittedMessage] = useState(false) // Boolean - controls message displayed after pool entry is submitted
     const [displayPoolFormError, setDisplayPoolFormError] = useState(false); // Boolean - controls when pool form errors should be displayed (after submit attempt)
     const [illustrativePlayers, setIllustrativePlayers] = useState([]); // Array - list of illustrative players (not final)
@@ -287,12 +219,12 @@ const Pool = () => {
     // START USEEFFECTS
 
     
-    // Onload, get schedule, tournament data (players, course info, event info), and scoreboard
+    // Onload, get schedule, tournament data (players & event info), and scoreboard
     useEffect(() => {
         if (!hasStartedFetch){
             // Set current date
-            const date = new Date();            
-            const tempDate = hardCodeDate ? hardCodeDate : moment(date).utc().format('MM/DD/YY');
+            const date = new Date();
+            const tempDate = hardCodeDate ? hardCodeDate : moment(date).utcOffset('-0700').format('MM/DD/YY');
             const fullYear = date.getFullYear();
             setCurrentDate(tempDate);
             setCurrentYear(fullYear);
@@ -305,7 +237,6 @@ const Pool = () => {
             // calculateScheduleData()
             
             // --HARDCODE tournamentResponse
-            // calculateCourseData();
             // calculatePlayerData(); // If also fetching DFS data, uncomment below line
             // setReadyToCalculateDfsSalaries(true)
             
@@ -337,7 +268,7 @@ const Pool = () => {
         calculateScheduleData();
     }, [scheduleResponse]);
     
-    // After scheduleResponse is returned, fetch tournament data (players, course info, event info)
+    // After scheduleResponse is returned, fetch tournament data (players & event info)
     useEffect(() => {
         if (configuration === "rapidApi") retrieveTournamentDataRapid();
         // Identify current tournament
@@ -352,17 +283,10 @@ const Pool = () => {
                 const currentTournament = schedule.schedule[i];
                 const start = new Date(currentTournament.startDate);
                 const end = new Date(currentTournament.endDate);
-                // console.log("\n\ncurrent",current)
-                // console.log("start",start)
-                // console.log("end",end)
                 // Date matches start or end date
                 if ((current - start == 0) || (current - end == 0) || (i == schedule.schedule.length - 1)) {
                     if (current - start == 0) currentTournamentDay = 1;
-                    if (current - end == 0) {
-                        // console.log("***********EQUALS 0")
-                        currentTournamentDay = 4;
-                    }
-                        
+                    if (current - end == 0) currentTournamentDay = 4;                        
                     tempActiveTournamentId = currentTournament.tournamentId;
                     isReadyToGetUpdatedLeaderboardInfo = true; // On start date or end date, able to fetch a live leaderboard
                     break;
@@ -414,27 +338,19 @@ const Pool = () => {
                         break
                     }
                 }
-            }
-            // console.log("isReadyToFetchNewTournamentInfo", isReadyToFetchNewTournamentInfo)
-            // console.log("dfsSalaries", dfsSalaries)
-            // console.log("dfsSalaries.length > 0", dfsSalaries.length > 0)
-            // console.log("((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0))", ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)))
-            setActiveTournamentId(tempActiveTournamentId);
+            }setActiveTournamentId(tempActiveTournamentId);
             setHighlightedTournamentId(tempActiveTournamentId);
-            fetchMongoCourses(currentFormattedDate, tempActiveTournamentId);
             // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
             fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
             fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
             fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
-            // console.log("----currentTournamentDay",currentTournamentDay) // current bug with UTC date format sending current day + 1 
             if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
         }
     }, [schedule]);
 
-    // After tournamentResponse is returned, set tournament data in mongo (players, course info, event info)
+    // After tournamentResponse is returned, set tournament data in mongo (players & event info)
     useEffect(() => {
         if (configuration === "rapidApi") {
-            calculateCourseData();
             calculatePlayerData();
             retrieveLeaderboardDataRapid();
         }
@@ -524,12 +440,12 @@ const Pool = () => {
 
     // Set loading state
     useEffect(() => {
-        if (!(isScheduleLoading || isCoursesLoading || isAllPlayersLoading || isLeaderboardLoading || isDfsLoading || isPoolFormEntryLoading || isPoolLoading)) {
+        if (!(isScheduleLoading || isAllPlayersLoading || isLeaderboardLoading || isDfsLoading || isPoolFormEntryLoading || isPoolLoading)) {
             setIsLoading(false);
         } else {
             setIsLoading(true);
         }
-    }, [isScheduleLoading, isCoursesLoading, isAllPlayersLoading, isLeaderboardLoading, isDfsLoading, isPoolFormEntryLoading, isPoolLoading]);
+    }, [isScheduleLoading, isAllPlayersLoading, isLeaderboardLoading, isDfsLoading, isPoolFormEntryLoading, isPoolLoading]);
     
 
     // END USEEFFECTS
@@ -553,22 +469,7 @@ const Pool = () => {
             });
     }
 
-    // Store score info in mongo
-    const saveCourses = (obj) => {
-        setIsCoursesLoading(true);
-        axios.put('https://worldofjack-server.onrender.com/add-courses', obj)
-        .then((response) => {
-            setSnackbarMessages([...snackbarMessages, "Courses saved"]);
-            setIsCoursesLoading(false);
-        })
-        .catch((error) => {
-            setSnackbarMessages([...snackbarMessages, "Error saving courses"]);
-            console.error('Error saving courses:', error);
-            setIsCoursesLoading(false);
-        });
-    }
-
-    // Store tournament data in mongo (players, course info, event info)
+    // Store tournament data in mongo (players & event info)
     const savePlayers = (obj) => {
         setIsAllPlayersLoading(true);
         axios.put('https://worldofjack-server.onrender.com/add-players', obj)
@@ -622,10 +523,11 @@ const Pool = () => {
                 setIsPoolFormEntryLoading(false);
                 setPoolForm({
                     errors: {},
-                    checkbox: false,
+                    checkbox: true,
                     name: poolForm.name,
                     phone: poolForm.phone,
-                    email: poolForm.email 
+                    email: poolForm.email,
+                    suggestions: poolForm.suggestions 
                 });
                 setDisplayEntrySubmittedMessage(true);
             })
@@ -657,20 +559,6 @@ const Pool = () => {
         }
     }
 
-    const fetchMongoCourses = async (currentYear, tournamentId) => {
-        setIsCoursesLoading(true);
-        try {
-            await axios.get("https://worldofjack-server.onrender.com/get-courses", { params: { year: currentYear, tournamentId: tournamentId }})
-                .then((response) => {
-                    setCourses(response.data);
-                    setIsCoursesLoading(false);
-                })
-        } catch (err) {
-            console.error('Error fetching saved courses');
-            setIsCoursesLoading(false);
-        }
-    }
-
     const fetchMongoPlayers = async (currentYear, tournamentId, retrieveTournamentDataWhenReadyAndSavedPlayersNotFound) => {
         setIsAllPlayersLoading(true);
         try {
@@ -699,8 +587,8 @@ const Pool = () => {
                         const timestamp = moment.utc().valueOf();
                         // Conditions for pulling an updated leaderboard below, otherwise set fetched leaderboard
                         if (
-                            // It's been at least 30 minutes since last fetch
-                            ((timestamp - response.data.timestamp) > 1800000)
+                            // It's been at least 20 minutes since last fetch
+                            ((timestamp - response.data.timestamp) > 1200000)
                             // It's a tournament day
                             && isReadyToGetUpdatedLeaderboardInfo
                             // Round is not in "Official" (completed) status
@@ -708,7 +596,7 @@ const Pool = () => {
                             // Tournament is not complete
                             && response.data.status !== "Official"
                         ) {
-                            console.log("Leaderboard last fetched greater than 1 hour ago, about to fetch new leaderboard");
+                            console.log("Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
                             retrieveLeaderboardDataRapid();
                         } else {
                             // When not going to overwrite recently fetched leaderboard, set leaderboard and erase loading state
@@ -801,34 +689,6 @@ const Pool = () => {
 
             setSchedule(tempScheduleObj);
             saveSchedule(tempScheduleObj);
-        }
-    }
-
-    const calculateCourseData = () => {
-        if (tournamentResponse && tournamentResponse.courses) {
-            // Set course(s)
-            const responseCourses = tournamentResponse.courses;
-            const tempCourses = []
-            for (let i = 0; i < responseCourses.length; i++) {
-                const currentCourse = responseCourses[i];
-                tempCourses.push({
-                    tournamentId: tournamentResponse.tournId,
-                    courseId: currentCourse.courseId,
-                    courseName: currentCourse.courseName,
-                    holes: currentCourse.hole,
-                    location: currentCourse.location,
-                    parTotal: currentCourse.parTotal
-                });
-            }
-
-            const tempCoursesObj = {
-                year: tournamentResponse.year,
-                tournamentId: tournamentResponse.tournId,
-                courses: tempCourses
-            };
-
-            setCourses(tempCoursesObj);
-            saveCourses(tempCoursesObj);
         }
     }
 
@@ -1122,7 +982,7 @@ const Pool = () => {
         }
     }
 
-    // Retrieve tournament data (players, course info, event info)
+    // Retrieve tournament data (players & event info)
     const retrieveTournamentDataRapid = async () => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_8a041a6a-98bc-4ed2-95af-4dcdb76f7c66
@@ -1131,7 +991,6 @@ const Pool = () => {
         // console.log("!preventTournamentRetries", !preventTournamentRetries)
         if (highlightedTournamentId && currentYear && !preventTournamentRetries) {
             setPreventTournamentRetries(true);
-            setIsCoursesLoading(true);
             setIsAllPlayersLoading(true);
     
             const options = {
@@ -1152,11 +1011,9 @@ const Pool = () => {
             try {
                 const response = await axios.request(options);
                 setTournamentResponse(response.data);
-                setIsCoursesLoading(false);
                 setIsAllPlayersLoading(false);
             } catch (error) {
                 console.error(error);
-                setIsCoursesLoading(false);
                 setIsAllPlayersLoading(false);
             }
         } else {
@@ -1262,6 +1119,7 @@ const Pool = () => {
                     name: poolForm.name,
                     email: poolForm.email,
                     phone: poolForm.phone,
+                    suggestions: poolForm.suggestions,
                     selectedPlayers: illustrativePlayers,
                     salaryCapUsed: illustrativeSalaryCap
                 }
@@ -1482,14 +1340,29 @@ const Pool = () => {
 
     // START RENDER FUNCTION
 
-    // console.log("poolLeaderboard",poolLeaderboard)
-    // console.log("leaderboard",leaderboard)
-
+    
     return (
         <div className="flexColumn alignCenter paddingBottomMassive golf pool">
             {/* Display loader when fetching data */}
-            {isLoading && <div className="alignCenter" style={{ marginTop: "40vh" }}><CircularProgress /></div>}
-            {!isLoading && 
+            {isLoading &&
+                <div className="flexColumn justifyCenter alignCenter" style={{ marginTop: "40vh" }}>
+                    <CircularProgress className="marginBottomMedium" />
+                    {isPoolFormEntryLoading && <p className="whiteFont">Submitting Pool Entry</p>}
+                    {isScheduleLoading
+                        ? <p className="whiteFont">Fetching PGA tour season schedule</p>
+                        : isAllPlayersLoading
+                            ? <p className="whiteFont">Fetching player information</p>
+                            : isLeaderboardLoading
+                                ? <p className="whiteFont">Fetching leaderboard data</p>
+                                : isDfsLoading
+                                    ? <p className="whiteFont">Fetching DFS salaries</p>
+                                    : isPoolLoading 
+                                        ? <p className="whiteFont">Enumerating pool leaderboard</p>
+                                            : null
+                    }
+                </div>
+            }
+            {!isLoading &&
                 <div className="width100Percent flexColumn alignCenter">
                     {/* Tournament selection dropdown */}
                     {schedule &&
@@ -1518,58 +1391,6 @@ const Pool = () => {
                             </Select>
                         </FormControl>
                     }
-
-
-                    {/*
-                    Pool entry form
-
-                    Only display when current tournament is selected?
-                        If future tournament is selected, display messaging "There is nothing to display right now"
-                            Or just display future tournament info?
-
-
-                    Static
-                        tournament name
-                        dates
-                        Course
-
-                    SCORING RULES modal
-                    
-                    Links for datagolf? as modal?
-                    
-                    Validations atop page
-                    - Salary
-
-                    Full Name
-                    Email - field validation
-                    List of players - multiple columns if there's room?
-
-                    Radio button "I have submitted payment via Venmo or Apple Pay" <b>WITH THE TOURNAMENT NAME IN THE DESCRIPTION</b>
-                    (optional) share venmo name if it's weird
-                    (optional) phone number - in case one of your golfers has WD prior to tournament, I can text you (instead of email), otherwise I will choose a player for you with the next closest salary with highest PPG on DraftKings
-
-                    if desktop, can display L/R section
-                        Large text box for "suggestions"
-
-
-                    Enable submit button once everything is valid
-
-
-                    Regulations
-                        Attempting to submit multiple entries without payment will result in both being removed
-                        An email will be sent at the beginning on the tournament
-
-                        Thank you for joining, and join us next week!
-
-
-
-                        (Auto invite for next tournament - or opt out) button click should add to "email list" collection
-                        Options for removing from email list
-                    
-                    */}
-
-
-
                     
                     {/* Pool entry form */}
                     {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) &&
@@ -1599,9 +1420,10 @@ const Pool = () => {
                                 <TextField value={poolForm.name || null} style={{ maxWidth: "420px" }} id="fullName" label="Full Name" variant="outlined" onChange={(e) => handleFormChange("name", e.target.value)} />
                                 <TextField value={poolForm.phone || null} style={{ maxWidth: "420px" }} id="fullName" label="Phone" variant="outlined" onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
                                 <TextField value={poolForm.email || null} style={{ maxWidth: "420px" }} id="fullName" label="Email" variant="outlined" onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
-                                <div className="formCheckbox marginTopMedium marginBottomMedium">
+                                {/* <div className="formCheckbox marginTopMedium marginBottomMedium">
                                     <FormControlLabel control={<Checkbox onChange={() => handleFormChange("checkbox", poolForm.checkbox ? !poolForm.checkbox : true)} />} label={<div className="whiteFont">*I have paid via Venmo <b>@jcgilson</b> or Apple Pay <b>(317) 213-8188</b></div>} />
-                                </div>
+                                </div> */}
+                                <h1>ADD SUGGESTION BOX HERE</h1>
                                 <Button
                                     variant="outlined"
                                     color="white"
@@ -1751,9 +1573,9 @@ const Pool = () => {
                                             <TableCell key={2} style={{ width: "70px" }}><h3 className="whiteFont">Salary</h3></TableCell>
                                             <TableCell key={3} style={{ width: "200px" }}><h3 className="whiteFont">Name</h3></TableCell>
                                             <TableCell key={4} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R1</h3></TableCell>
-                                            <TableCell key={5} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R2</h3></TableCell>
-                                            <TableCell key={6} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R3</h3></TableCell>
-                                            <TableCell key={7} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R4</h3></TableCell>
+                                            {leaderboard.roundId > 1 && <TableCell key={5} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R2</h3></TableCell>}
+                                            {leaderboard.roundId > 2 && <TableCell key={6} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R3</h3></TableCell>}
+                                            {leaderboard.roundId > 3 && <TableCell key={7} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R4</h3></TableCell>}
                                             <TableCell key={8} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">THRU</h3></TableCell>
                                             <TableCell key={9} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">Total</h3></TableCell>
                                         </TableRow>
@@ -1761,36 +1583,34 @@ const Pool = () => {
                                     <TableBody>
                                         {poolLeaderboard.sort((a, b) => a.scoring.totalScoreToPar - b.scoring.totalScoreToPar).map((entry, i) => {
                                             return (
-                                                <>
-                                                    {/* Entry header */}
+                                                <React.Fragment key={i}>
                                                     <TableRow key={i}>
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={1}>{i + 1}</TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={2}>${entry.salaryCapUsed}</TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={3}>{entry.name}</TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={4}>{entry.scoring.round1}</TableCell>
-                                                        <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={5}>{entry.scoring.round2}</TableCell>
-                                                        <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={6}>{entry.scoring.round3}</TableCell>
-                                                        <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={7}>{entry.scoring.round4}</TableCell>
+                                                        {leaderboard.roundId > 1 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={5}>{entry.scoring.round2}</TableCell>}
+                                                        {leaderboard.roundId > 2 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={6}>{entry.scoring.round3}</TableCell>}
+                                                        {leaderboard.roundId > 3 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={7}>{entry.scoring.round4}</TableCell>}
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={8}></TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={9}>{entry.scoring.totalScoreToPar}</TableCell>
                                                     </TableRow>
-                                                    {/* Score rows */}
                                                     {entry.players.map((player, j) => {
                                                         return (
                                                             <TableRow key={j + 100000}>
-                                                                <TableCell key={j}></TableCell>
+                                                                <TableCell key={j}>{" "}</TableCell>
                                                                 <TableCell key={j + 1}>${player.salary}</TableCell>
                                                                 <TableCell key={j + 2}>{player.isAmateur ? "(a) " : ""}{player.firstName} {player.lastName}</TableCell>
                                                                 <TableCell key={j + 3} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(1) ? "strikethroughFont" : ""}>{player.round1 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round1 === "-" ? "+18" : player.round1}</TableCell>
-                                                                <TableCell key={j + 4} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(2) ? "strikethroughFont" : ""}>{player.round2 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round2 === "-" ? "+18" : player.round2}</TableCell>
-                                                                <TableCell key={j + 5} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(3) ? "strikethroughFont" : ""}>{player.round3 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round3 === "-" ? "+18" : player.round3}</TableCell>
-                                                                <TableCell key={j + 6} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(4) ? "strikethroughFont" : ""}>{player.round4 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round4 === "-" ? "+18" : player.round4}</TableCell>
-                                                                <TableCell key={j + 7} style={{ textAlign: "center" }}>{player.thru ? player.thru : "NS"}</TableCell>
-                                                                <TableCell key={j + 8} style={{ textAlign: "center" }}>{parseInt(player.countedScoreToPar) > 0 ? `+${player.countedScoreToPar}` : player.countedScoreToPar}</TableCell>
+                                                                {leaderboard.roundId > 1 && <TableCell key={j + 4} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(2) ? "strikethroughFont" : ""}>{player.round2 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round2 === "-" ? "+18" : player.round2}</TableCell>}
+                                                                {leaderboard.roundId > 2 && <TableCell key={j + 5} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(3) ? "strikethroughFont" : ""}>{player.round3 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round3 === "-" ? "+18" : player.round3}</TableCell>}
+                                                                {leaderboard.roundId > 3 && <TableCell key={j + 6} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(4) ? "strikethroughFont" : ""}>{player.round4 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round4 === "-" ? "+18" : player.round4}</TableCell>}
+                                                                <TableCell key={j + 7} style={{ textAlign: "center" }}>{player.thru ? player.thru.replace("*", "") : "NS"}</TableCell>
+                                                                <TableCell key={j + 8} style={{ textAlign: "center" }}>{parseInt(player.countedScoreToPar) > 0 ? `+${player.countedScoreToPar}` : player.countedScoreToPar == 0 ? "E" : player.countedScoreToPar}</TableCell>
                                                             </TableRow>
                                                         )
                                                     })}
-                                                </>
+                                                </React.Fragment>
                                             )
                                         })}
                                     </TableBody>
@@ -1813,23 +1633,22 @@ const Pool = () => {
                                             {leaderboard.roundId > 1 && <TableCell style={{ width: "70px" }} onClick={() => handleLeaderboardSortMethodChange(4, "parseInt", "scoring", "rounds", { nestedDataType: "array", nestedIndex: 1, nestedValue: "scoreToPar", fallbackDataObject: "progress", fallbackDataValue: "currentRoundScore" })}><div className="flexFlowRowNoWrap justifyCenter alignCenter"><h3 className="whiteFont">R2</h3>{displayLeaderboardArrow(4)}</div></TableCell>}
                                             {leaderboard.roundId > 2 && <TableCell style={{ width: "70px" }} onClick={() => handleLeaderboardSortMethodChange(5, "parseInt", "scoring", "rounds", { nestedDataType: "array", nestedIndex: 2, nestedValue: "scoreToPar", fallbackDataObject: "progress", fallbackDataValue: "currentRoundScore" })}><div className="flexFlowRowNoWrap justifyCenter alignCenter"><h3 className="whiteFont">R3</h3>{displayLeaderboardArrow(5)}</div></TableCell>}
                                             {leaderboard.roundId > 3 && <TableCell style={{ width: "70px" }} onClick={() => handleLeaderboardSortMethodChange(6, "parseInt", "scoring", "rounds", { nestedDataType: "array", nestedIndex: 3, nestedValue: "scoreToPar", fallbackDataObject: "progress", fallbackDataValue: "currentRoundScore" })}><div className="flexFlowRowNoWrap justifyCenter alignCenter"><h3 className="whiteFont">R4</h3>{displayLeaderboardArrow(6)}</div></TableCell>}
-                                            {leaderboard.roundStatus !== "Official" && <TableCell style={{ width: "70px" }} onClick={() => handleLeaderboardSortMethodChange(7, "thru", "progress", "thru")}><div className="flexFlowRowNoWrap justifyCenter alignCenter"><h3 className="whiteFont">THRU</h3>{displayLeaderboardArrow(7)}</div></TableCell>} {/* Hide tournament day round is official */}
+                                            {leaderboard.roundStatus !== "Official" && <TableCell style={{ width: "70px" }} onClick={() => handleLeaderboardSortMethodChange(7, "thru", "progress", "thru")}><div className="flexFlowRowNoWrap justifyCenter alignCenter"><h3 className="whiteFont">THRU</h3>{displayLeaderboardArrow(7)}</div></TableCell>}
                                             <TableCell style={{ width: "70px" }} onClick={() => handleLeaderboardSortMethodChange(8, "parseInt", "scoring", "totalScoreToPar")}><div className="flexFlowRowNoWrap justifyCenter alignCenter"><h3 className="whiteFont">Score</h3>{displayLeaderboardArrow(8)}</div></TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {leaderboard.leaderboard.map((player, i) => {
-                                            if ((i < ((poolLeaderboard.length * 7) - 1)) || leaderboardIsExpanded) {
+                                            if ((i < ((poolLeaderboard.length * 7) - 2)) || leaderboardIsExpanded) {
                                                 return (
                                                     <TableRow key={i}>
                                                         <TableCell key={1}>{player.scoring.position}</TableCell>
                                                         <TableCell key={2}>{player.playerDemographics && player.playerDemographics.isAmateur ? "(a) " : ""}{player.playerDemographics.firstName} {player.playerDemographics.lastName}</TableCell>
-                                                        {/* If round is complete display current score to par from scoring.rounds array */}
                                                         <TableCell style={{ textAlign: "center" }} key={3}>{player.scoring.rounds[0] ? player.scoring.rounds[0].scoreToPar : (player.progress && player.progress.currentRoundScore) ? player.progress.currentRoundScore : "-"}</TableCell>
                                                         {leaderboard.roundId > 1 && <TableCell style={{ textAlign: "center" }} key={4}>{player.scoring.rounds[1] ? player.scoring.rounds[1].scoreToPar : (player.progress && player.progress.currentRoundScore) ? player.progress.currentRoundScore : "-"}</TableCell>}
                                                         {leaderboard.roundId > 2 && <TableCell style={{ textAlign: "center" }} key={5}>{player.scoring.rounds[2] ? player.scoring.rounds[2].scoreToPar : (player.progress && player.progress.currentRoundScore) ? player.progress.currentRoundScore : "-"}</TableCell>}
                                                         {leaderboard.roundId > 3 && <TableCell style={{ textAlign: "center" }} key={6}>{player.scoring.rounds[3] ? player.scoring.rounds[3].scoreToPar : (player.progress && player.progress.currentRoundScore) ? player.progress.currentRoundScore : "-"}</TableCell>}
-                                                        {leaderboard.roundStatus !== "Official" && <TableCell style={{ textAlign: "center" }} key={7}>{player.progress && player.progress.thru ? player.progress.thru : "-"}</TableCell>}
+                                                        {leaderboard.roundStatus !== "Official" && <TableCell style={{ textAlign: "center" }} key={7}>{player.progress && player.progress.thru ? player.progress.thru.replace("*", "") : "-"}</TableCell>}
                                                         <TableCell style={{ textAlign: "center" }} key={8}>{player.scoring.totalScoreToPar}</TableCell>
                                                     </TableRow>
                                                 );

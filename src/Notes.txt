@@ -398,3 +398,40 @@ https://docs.npmjs.com/try-the-latest-stable-version-of-npm
  
 
 Compile all notes into this file going forward.
+
+
+
+
+
+
+
+
+
+Pool notes
+
+Stableford
+could get scorecard data ONLY for selected golfers, for all others, "no one has selected this player"
+Calculate at end of each day? Not good for following live leaderboard - would cost a LOT to upgrade
+    For each player, would need to pull 4 times per day (16 per tournament)
+        Could display leaderboard and calculate stableford at end of day 
+            Would still require pull for every player
+
+Link to monitor Rapid API requests (60 starting 1/14/2025)
+https://rapidapi.com/developer/analytics/default-application_10075500
+
+
+
+After tournament wraps, could begin savings player scoring averages
+    Could fetch some legacy rounds if I still have fetches left for month
+        1 needed for year schedule, 2 more for each tournament to pull tournamentData and leaderboardData
+    "Cut % made since X data" (5/6)
+    EV = salary / strokes under par (can't use old DFS salaries for these calulations)
+        Is there strenth of schedule
+
+
+Could beginmaking "predictive analysis" with ability to assign weight to various metrics (maybe using data golf)
+    10% of "score" is previous 3 tournament results
+    10% previous results at same tournament
+    10% driving distance (weighted based on tournament)
+    10% FPM putting
+    etc.
