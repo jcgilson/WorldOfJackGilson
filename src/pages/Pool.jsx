@@ -871,7 +871,21 @@ const Pool = () => {
                         });
                     }
                     // Sort current round scores by score  
-                    allRoundScores = allRoundScores.sort((a, b) => (a.scoreToPar === "-" ? 18 : a.scoreToPar === "E" ? 0 : parseInt(a.scoreToPar)) - (b.scoreToPar === "-" ? 18 : b.scoreToPar === "E" ? 0 : parseInt(b.scoreToPar)));
+                    allRoundScores = allRoundScores.sort((a, b) => 
+                        (
+                            a.scoreToPar === "-"
+                                ? 18
+                                : a.scoreToPar === "E"
+                                    ? 0
+                                    : parseInt(a.scoreToPar)
+                        ) - (
+                            b.scoreToPar === "-"
+                                ? 18
+                                : b.scoreToPar === "E"
+                                    ? 0
+                                    : parseInt(b.scoreToPar)
+                        )
+                    );
                     // Push the 4 used scores to final array
                     roundScoresUsedByPlayerIds.push(allRoundScores.slice(0, 4));
                 }
@@ -893,7 +907,14 @@ const Pool = () => {
                     for (let i = 0; i < roundScoresUsedByPlayerIds[round].length; i++) {
                         // Store current players score to par
                         // in first or statement, double check round status !== not started
-                        const playerCurrentRoundScoreToPar = (!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-" && roundScoresUsedByPlayerIds.playerIsCutOrWd) ? 18 : ((!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-")) ? 0 : roundScoresUsedByPlayerIds[round][i].scoreToPar === "E" ? 0 : parseInt(roundScoresUsedByPlayerIds[round][i].scoreToPar);
+                        const playerCurrentRoundScoreToPar =
+                            (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-" && roundScoresUsedByPlayerIds[round][i].playerIsCutOrWd)
+                                // If player is CUT or WD use 18
+                                ? 18
+                                : ((!roundScoresUsedByPlayerIds[round]) || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "-") || (roundScoresUsedByPlayerIds[round][i].scoreToPar === "E"))
+                                    // If player is not cut and score is not available, or player score is "E", use 0
+                                    ? 0
+                                    : parseInt(roundScoresUsedByPlayerIds[round][i].scoreToPar);
                         // Save current players score to par
                         tempScoringObj[`round${round + 1}`] = tempScoringObj[`round${round + 1}`] + playerCurrentRoundScoreToPar;
                         // Save current players total score to par
@@ -922,8 +943,13 @@ const Pool = () => {
                         // Begin to save score used
                         let tempScoreToBeAdded = 0;
                         if (roundScoresUsedByPlayerIds[round][countedScoreIndex].scoreToPar === "-") {
-                            // If no score is available, use 18
-                            tempScoreToBeAdded = 18;
+                            if (roundScoresUsedByPlayerIds[round][countedScoreIndex].playerIsCutOrWd){
+                                // If player is CUT or WD, use 18 as score
+                                tempScoreToBeAdded = 18;
+                            } else {
+                                // If no score is available yet, use 1
+                                tempScoreToBeAdded = 0;
+                            }
                         } else if (roundScoresUsedByPlayerIds[round][countedScoreIndex].scoreToPar === "E") {
                             // If "E", save as 0 scoreToPar
                             tempScoreToBeAdded = 0;
@@ -934,8 +960,8 @@ const Pool = () => {
                         // Store total score being used for player
                         tempCountedScoreToPar = tempCountedScoreToPar + tempScoreToBeAdded;
                     }
-                }                
-
+                }
+                
                 // Save player info
                 players[i] = {
                     ...players[i],
@@ -1621,9 +1647,9 @@ const Pool = () => {
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={2}>${entry.salaryCapUsed}</TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA" }} key={3}>{entry.name}</TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={4}>{entry.scoring.round1 === "0" ? "E" : entry.scoring.round1 > 0 ? `+${entry.scoring.round1}` : entry.scoring.round1}</TableCell>
-                                                        {leaderboard.roundId > 1 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={5}>{entry.scoring.round2 === "0" ? "E" : entry.scoring.round2 > 0 ? `+${entry.scoring.round2}` : entry.scoring.round2}</TableCell>}
-                                                        {leaderboard.roundId > 2 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={6}>{entry.scoring.round3 === "0" ? "E" : entry.scoring.round3 > 0 ? `+${entry.scoring.round3}` : entry.scoring.round3}</TableCell>}
-                                                        {leaderboard.roundId > 3 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={7}>{entry.scoring.round4 === "0" ? "E" : entry.scoring.round4 > 0 ? `+${entry.scoring.round4}` : entry.scoring.round4}</TableCell>}
+                                                        {leaderboard.roundId > 1 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={5}>{entry.scoring.round2 === 0 ? "E" : entry.scoring.round2 > 0 ? `+${entry.scoring.round2}` : entry.scoring.round2}</TableCell>}
+                                                        {leaderboard.roundId > 2 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={6}>{entry.scoring.round3 === 0 ? "E" : entry.scoring.round3 > 0 ? `+${entry.scoring.round3}` : entry.scoring.round3}</TableCell>}
+                                                        {leaderboard.roundId > 3 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={7}>{entry.scoring.round4 === 0 ? "E" : entry.scoring.round4 > 0 ? `+${entry.scoring.round4}` : entry.scoring.round4}</TableCell>}
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={8}></TableCell>
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={9}>{entry.scoring.totalScoreToPar}</TableCell>
                                                     </TableRow>
