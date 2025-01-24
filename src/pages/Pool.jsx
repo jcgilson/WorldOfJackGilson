@@ -66,7 +66,8 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 
 // Next steps
 // Email template
-
+// Instead of pulling players from API, should do this at the time leaderboard is fetched
+    // try to map players based on name raher than possibly excluding from salaries list (ex: Aberg)
 
 // Pricing $25 for first tournament, $20 after - tries to retain players
     // Helps keep the lights on (tooltip: server cost to host site, rapid API call pricing)
@@ -844,7 +845,7 @@ const Pool = () => {
 
             // Begin populating all scores used by each player, iterating by round
             for (let round = 0; round < 4; round++) {
-                if ((round + 1) <= activeTournamentDay) {
+                if ((round + 1) <= leaderboard.roundId) {
                     // Temporarily store all player scores for each round
                     let allRoundScores = [];
                     // Begin by iterating every available players
@@ -883,7 +884,7 @@ const Pool = () => {
             // Begin by iterating each round
             for (let round = 0; round < 4; round++) {
                 // Iterate each score used for that round
-                if ((round + 1) <= activeTournamentDay) {
+                if ((round + 1) <= leaderboard.roundId) {
                     for (let i = 0; i < roundScoresUsedByPlayerIds[round].length; i++) {
                         // Store current players score to par
                         // in first or statement, double check round status !== not started
@@ -1646,6 +1647,7 @@ const Pool = () => {
                             </div>
                         }
 
+                        {/* Leaderboard */}
                         {leaderboard && leaderboard.leaderboard &&
                             <div id="leaderboard" style={{ width: screenWidth < 1000 ? "95%" : "640px", marginLeft: screenWidth < 1000 ? "2.5%" : "0", marginTop: screenWidth > 1480 ? "0" : "24px" }}>
                                 <div className="flexRow justifySpaceBetween alignCenter">
