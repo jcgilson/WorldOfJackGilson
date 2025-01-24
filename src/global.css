@@ -1,5 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Display:ital,wght@0,100..900;1,100..900&display=swap');
 
+/* Media Query styles */
+@media (max-width: 1000px) {
+    /* All pool styles */
+    .pool .mobileContainer,
+    .pool .mobileContainer .leaderboardsContainer {
+        width: 95vw !important;
+    }
+    .pool h1 {
+        font-size: 28px !important;
+    }
+    .pool h3, .pool b, .pool td, .pool span, .pool p,
+    /* Schedule dropdown */
+    .scheduleDropdownItem span, .scheduleDropdownItem b {
+        font-size: 24px !important;
+        /* color: red !important; */
+    }
+}
+
 :root {
     /* Color */
     --color-blue: #ABCCDB;

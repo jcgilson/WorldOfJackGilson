@@ -61,7 +61,12 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
     // Derive allPlayers from dfsSalaries
     // Search "ADD SUGGESTION BOX HERE" to add additional suggestion box text area field
         // Remove payment checkbox temporarily
-    // Allow edits to scorecard up until submitted
+    // Allow edits to scorecard up until submitted - linked/search query by email/phone number
+    // Personal URL with queryy parameter to fixate pool entry atop leaderboard
+    // Ability to search entries by name?
+    // Mobile responsiveness for pool entry form
+    // Schedule drop down should display previous data
+    
 
 
 // Next steps
@@ -1375,7 +1380,7 @@ const Pool = () => {
             {/* Display loader when fetching data */}
             {isLoading &&
                 <div className="flexColumn justifyCenter alignCenter" style={{ marginTop: "40vh" }}>
-                    <CircularProgress className="marginBottomMedium" />
+                    <CircularProgress size={screenWidth < 1000 ? 100 : null} className="marginBottomExtraLarge" />
                     {isPoolFormEntryLoading && <p className="whiteFont">Submitting Pool Entry</p>}
                     {isScheduleLoading
                         ? <p className="whiteFont">Fetching PGA tour season schedule</p>
@@ -1392,7 +1397,7 @@ const Pool = () => {
                 </div>
             }
             {!isLoading &&
-                <div className="width100Percent flexColumn alignCenter">
+                <div className={`width100Percent flexColumn alignCenter${screenWidth < 1000 ? " mobileContainer" : ""}`}>
                     {/* Tournament selection dropdown */}
                     {schedule &&
                         <FormControl sx={{ m: 1 }} variant="filled">
@@ -1405,15 +1410,13 @@ const Pool = () => {
                             >
                                 {sortedSchedule.map((tournament, i) => (
                                     <MenuItem key={tournament.tournamentId} value={tournament.tournamentId}>
-                                        <div className={`width100Percent justifySpaceBetween ${highlightedTournamentId === tournament.tournamentId ? " hidePushPin" : ""}`}>
-                                            <div className="flexRow marginRightMedium">
+                                        <div className={`scheduleDropdownItem width100Percent alignCenter justifySpaceBetween ${highlightedTournamentId === tournament.tournamentId ? " hidePushPin" : ""}`}>
+                                            <div className="flexRow alignCenter marginRightMedium">
                                                 <span className="marginRightMedium">{getTournamentDatesFormattedWithoutYear(tournament)}</span>
                                                 {tournament.majorTournament && <SportsGolfIcon />}
                                                 <b>{tournament.name}</b>
                                             </div>
-                                            {i == 0 &&
-                                                <PushPin />
-                                            }
+                                            {i == 0 && <PushPin />}
                                         </div>
                                     </MenuItem>
                                 ))}
@@ -1588,10 +1591,10 @@ const Pool = () => {
 
 
                     {/* Pool leaderboard and Leaderboard */}
-                    <div className={screenWidth > 1480 ? "flexFlowRowWrap" : "flexColumn"}>
+                    <div className={screenWidth > 1480 ? "flexFlowRowWrap leaderboardsContainer" : "flexColumn leaderboardsContainer"}>
                         {leaderboard && poolLeaderboard &&
                             <div id="poolLeaderboard" style={{ width: screenWidth < 1000 ? "95%" : "640px", marginLeft: screenWidth < 1000 ? "2.5%" : "0", marginRight: screenWidth > 1480 ? "64px" : "0" }}>
-                                <div className="flexRow justifySpaceBetween alignCenter">
+                                <div className="flexRow justifySpaceBetween alignCenter paddingLeftExtraSmall paddingRightExtraSmall">
                                     <h1 className="whiteFont marginTopMedium marginBottomMedium">Pool</h1>
                                     {screenWidth < 1480 && <b className="textDecoration whiteFont floatRight" onClick={() => handleScrollTo('leaderboard')}>Jump to Leaderboard</b>}
                                 </div>
