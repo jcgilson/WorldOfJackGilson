@@ -346,7 +346,6 @@ const Pool = () => {
             fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
             fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
             fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
-            console.log("currentTournamentDay",currentTournamentDay)
             if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
         }
     }, [schedule]);
@@ -1372,11 +1371,6 @@ const Pool = () => {
 
 
     // START RENDER FUNCTION
-
-    console.log("leaderboard",leaderboard)
-    console.log("dfs.salaries",dfs.salaries)
-    console.log("activeTournamentId",activeTournamentId)
-    console.log("highlightedTournamentId",highlightedTournamentId)
 
 
     return (
