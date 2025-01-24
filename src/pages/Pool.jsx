@@ -339,12 +339,14 @@ const Pool = () => {
                         break
                     }
                 }
-            }setActiveTournamentId(tempActiveTournamentId);
+            }
+            setActiveTournamentId(tempActiveTournamentId);
             setHighlightedTournamentId(tempActiveTournamentId);
             // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
             fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
             fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
             fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
+            console.log("currentTournamentDay",currentTournamentDay)
             if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
         }
     }, [schedule]);
@@ -1371,6 +1373,11 @@ const Pool = () => {
 
     // START RENDER FUNCTION
 
+    console.log("leaderboard",leaderboard)
+    console.log("dfs.salaries",dfs.salaries)
+    console.log("activeTournamentId",activeTournamentId)
+    console.log("highlightedTournamentId",highlightedTournamentId)
+
 
     return (
         <div className="flexColumn alignCenter paddingBottomMassive golf pool">
@@ -1454,7 +1461,7 @@ const Pool = () => {
                                 {/* <div className="formCheckbox marginTopMedium marginBottomMedium">
                                     <FormControlLabel control={<Checkbox onChange={() => handleFormChange("checkbox", poolForm.checkbox ? !poolForm.checkbox : true)} />} label={<div className="whiteFont">*I have paid via Venmo <b>@jcgilson</b> or Apple Pay <b>(317) 213-8188</b></div>} />
                                 </div> */}
-                                <h1>ADD SUGGESTION BOX HERE</h1>
+                                {/* <h1>ADD SUGGESTION BOX HERE</h1> */}
                                 <Button
                                     variant="outlined"
                                     color="white"
