@@ -619,7 +619,7 @@ const Pool = () => {
                         ) {
                             console.log("Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
                             retrieveLeaderboardDataRapid();
-
+                            setIsLeaderboardLoading(false);
                         } else {
                             // When not going to overwrite recently fetched leaderboard, set leaderboard and erase loading state
                             setLeaderboard(response.data);
