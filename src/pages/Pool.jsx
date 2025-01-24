@@ -1651,7 +1651,7 @@ const Pool = () => {
                                                         {leaderboard.roundId > 2 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={6}>{entry.scoring.round3 === 0 ? "E" : entry.scoring.round3 > 0 ? `+${entry.scoring.round3}` : entry.scoring.round3}</TableCell>}
                                                         {leaderboard.roundId > 3 && <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={7}>{entry.scoring.round4 === 0 ? "E" : entry.scoring.round4 > 0 ? `+${entry.scoring.round4}` : entry.scoring.round4}</TableCell>}
                                                         <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={8}></TableCell>
-                                                        <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={9}>{entry.scoring.totalScoreToPar}</TableCell>
+                                                        <TableCell style={{ backgroundColor: "#013021AA", textAlign: "center" }} key={9}>{entry.scoring.totalScoreToPar > 0 ? `+${entry.scoring.totalScoreToPar}` : entry.scoring.totalScoreToPar}</TableCell>
                                                     </TableRow>
                                                     {entry.players.map((player, j) => {
                                                         return (
