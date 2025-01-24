@@ -1380,7 +1380,7 @@ const Pool = () => {
             {/* Display loader when fetching data */}
             {isLoading &&
                 <div className="flexColumn justifyCenter alignCenter" style={{ marginTop: "40vh" }}>
-                    <CircularProgress size={screenWidth < 1000 ? 100 : null} className="marginBottomExtraLarge" />
+                    <CircularProgress size={100} className="marginBottomExtraLarge" />
                     {isPoolFormEntryLoading && <p className="whiteFont">Submitting Pool Entry</p>}
                     {isScheduleLoading
                         ? <p className="whiteFont">Fetching PGA tour season schedule</p>
