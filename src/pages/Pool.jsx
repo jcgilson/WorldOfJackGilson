@@ -352,9 +352,9 @@ const Pool = () => {
 
     // After tournamentResponse is returned, set tournament data in mongo (players & event info)
     useEffect(() => {
-        if (configuration === "rapidApi") {
+        if (configuration === "rapidApi" && currentYear && highlightedTournamentId) {
             calculatePlayerData();
-            retrieveLeaderboardDataRapid();
+            retrieveLeaderboardDataRapid(currentYear, highlightedTournamentId);
         }
         if ((dfsSalaries.length > 0) && highlightedTournamentId) fetchMongoDfs(actualYear, highlightedTournamentId, true);
     }, [tournamentResponse]);
@@ -619,7 +619,7 @@ const Pool = () => {
 
                         ) {
                             console.log("Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
-                            retrieveLeaderboardDataRapid();
+                            retrieveLeaderboardDataRapid(currentYear, tournamentId);
                             setIsLeaderboardLoading(false);
                         } else {
                             // When not going to overwrite recently fetched leaderboard, set leaderboard and erase loading state
@@ -631,7 +631,7 @@ const Pool = () => {
                 // Fetch new leaderboard when tournament in progress and no existing leaderboard is available
                 console.error(`Error fetching saved leaderboard${isReadyToGetUpdatedLeaderboardInfo && !preventLeaderboardRetries && ", attempting to fetch initial leaderboard"}`);
                 if (isReadyToGetUpdatedLeaderboardInfo && !preventLeaderboardRetries) {
-                    retrieveLeaderboardDataRapid();
+                    retrieveLeaderboardDataRapid(currentYear, tournamentId);
                 } 
                 setIsLeaderboardLoading(false);
             }
@@ -1050,15 +1050,11 @@ const Pool = () => {
     }
 
     // Retrieve leaderboard info when tournament is in progress
-    const retrieveLeaderboardDataRapid = async () => {
+    const retrieveLeaderboardDataRapid = async (year, tournamentId) => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_a6e32f80-75c7-4c35-ab1b-bbd685ee82f3
 
-        console.log("highlightedTournamentId",highlightedTournamentId)
-        console.log("currentYear",currentYear)
-        console.log("preventLeaderboardRetries",preventLeaderboardRetries)
-
-        if (highlightedTournamentId && currentYear && !preventLeaderboardRetries) {
+        if (tournamentId && year && !preventLeaderboardRetries) {
             setIsLeaderboardLoading(true);
     
             const options = {
@@ -1066,8 +1062,8 @@ const Pool = () => {
                 url: 'https://live-golf-data.p.rapidapi.com/leaderboard',
                 params: {
                     orgId: '1',
-                    tournId: highlightedTournamentId,
-                    year: currentYear
+                    tournId: tournamentId,
+                    year: year
                 },
                 headers: {
                     'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
