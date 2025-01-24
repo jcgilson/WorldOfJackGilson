@@ -1053,6 +1053,10 @@ const Pool = () => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_a6e32f80-75c7-4c35-ab1b-bbd685ee82f3
 
+        console.log("highlightedTournamentId",highlightedTournamentId)
+        console.log("currentYear",currentYear)
+        console.log("preventLeaderboardRetries",preventLeaderboardRetries)
+
         if (highlightedTournamentId && currentYear && !preventLeaderboardRetries) {
             setIsLeaderboardLoading(true);
     
