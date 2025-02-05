@@ -872,7 +872,7 @@ export const createScorecard = (courseInfo, activeRound, expandScorecard, setExp
                                     {createDTGRow(activeRound)}
                                 </TableRow>
                                 <TableRow key={9}>
-                                    <TableCell className="golfTableBorderRightSmall paddingLeftMedium">DTG2 - add tooltip</TableCell>
+                                    <TableCell className="golfTableBorderRightSmall paddingLeftMedium">DTG (Par 5)</TableCell>
                                     {createDTG2Row(activeRound, singleCourseInfo)}
                                 </TableRow>
                                 <TableRow key={10}>
@@ -1421,27 +1421,31 @@ const calculateCourseRecords = (courseInfo, courseMetrics) => {
 
     return (
         <table className="golfTable marginTopMassive marginBottomMassive">
-            <tr>
-                <th><h1 className="paddingBottomMedium floatLeft">Course Records</h1></th>
+            <thead>
+                <tr>
+                    <th><h1 className="paddingBottomMedium floatLeft">Course Records</h1></th>
 
-                {/* <th className="paddingLeftMassive"><small>(Date)</small></th> */}
-                <th className="paddingLeftMassive"><h1 className="paddingBottomMedium">Front</h1></th>
-                
-                {/* <th className="paddingLeftMassive"><small>(Date)</small></th> */}
-                <th className="paddingLeftMassive"><h1 className="paddingBottomMedium">Back</h1></th>
+                    {/* <th className="paddingLeftMassive"><small>(Date)</small></th> */}
+                    <th className="paddingLeftMassive"><h1 className="paddingBottomMedium">Front</h1></th>
+                    
+                    {/* <th className="paddingLeftMassive"><small>(Date)</small></th> */}
+                    <th className="paddingLeftMassive"><h1 className="paddingBottomMedium">Back</h1></th>
 
-                {/* <th className="paddingLeftMassive"><small>(Date)</small></th> */}
-                <th className="paddingLeftMassive"><h1 className="paddingBottomMedium">Total</h1></th>
-            </tr>
-            {tableRows.map(tableRow => {
-                return (
-                    <tr>
-                        {tableRow.map((tableData, j) => {
-                            return <td className={j == 0 ? "" : "paddingLeftMassive"}>{tableData}</td>
-                        })}
-                    </tr>
-                )
-            })}
+                    {/* <th className="paddingLeftMassive"><small>(Date)</small></th> */}
+                    <th className="paddingLeftMassive"><h1 className="paddingBottomMedium">Total</h1></th>
+                </tr>
+            </thead>
+            <tbody>
+                {tableRows.map(tableRow => {
+                    return (
+                        <tr>
+                            {tableRow.map((tableData, j) => {
+                                return <td className={j == 0 ? "" : "paddingLeftMassive"}>{tableData}</td>
+                            })}
+                        </tr>
+                    )
+                })}
+            </tbody>
         </table>
     )
 }

@@ -120,8 +120,6 @@ export const pageLinks = [
     "Golf Rounds",
     "Metrics",
     "Course Tour",
-    // "Historic Rounds",
-    // "Historic Metrics",
     "Enter Scorecard"
 ];
 
@@ -452,6 +450,24 @@ export const courses = [
         sequence: 49,
         displayName: "TPC Colorado",
         courseKey: "tpcColorado",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 50,
+        displayName: "Wigwam - Red",
+        courseKey: "wigwamRed",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 51,
+        displayName: "Wigwam - Gold",
+        courseKey: "wigwamGold",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 52,
+        displayName: "Wigwam - Blue",
+        courseKey: "wigwamBlue",
         scoreCardHoleAbbreviation: ""
     }
 ]

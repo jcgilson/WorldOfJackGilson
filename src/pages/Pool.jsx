@@ -13,6 +13,8 @@ import {
     FormControlLabel,
     FormGroup,
     IconButton,
+    InputAdornment,
+    Modal,
     MenuItem,
     Select,
     Snackbar,
@@ -40,7 +42,9 @@ import * as moment from 'moment'
 // CSS
 import "../pool.css"
 // Imports
+import { schedule2025 } from "../helpers/Schedule2025";
 import { dfsSalaries } from "../helpers/PoolSalaries";
+
 // Testing
 // import { testScheduleResponse } from "../test/testScheduleResponse";
 // import { testTournamentResponse } from "../test/testTournamentResponse";
@@ -189,7 +193,7 @@ const Pool = () => {
     ); // Object
 
     // Mongo/Rapid API data
-    const [schedule, setSchedule] = useState(null); // Object
+    const [schedule, setSchedule] = useState(schedule2025); // Object
     const [allPlayers, setAllPlayers] = useState(null); // Object
     const [leaderboard, setLeaderboard] = useState(null); // Object
     const [dfs, setDfs] = useState(null); // Object
@@ -214,8 +218,13 @@ const Pool = () => {
     const [displayEntrySubmittedMessage, setDisplayEntrySubmittedMessage] = useState(false) // Boolean - controls message displayed after pool entry is submitted
     const [displayPoolFormError, setDisplayPoolFormError] = useState(false); // Boolean - controls when pool form errors should be displayed (after submit attempt)
     const [illustrativePlayers, setIllustrativePlayers] = useState([]); // Array - list of illustrative players (not final)
-    const [filteredIllustrativePlayers, setFilteredIllustrativePlayers] = useState([]);
+    const [illustrativePlayerSearchQuery, setIllustrativePlayerSearchQuery] = useState("") // String - illustrative player search query
+    const [filteredIllustrativePlayers, setFilteredIllustrativePlayers] = useState([]); // Array - list of players that fulfill illustrative player search query
     const [illustrativeSalaryCap, setIllustrativeSalaryCap] = useState(0); // Number - salary cap used with all illustrative players
+    const [isEditingPoolEntry, setIsEditingPoolEntry] = useState(false); // Boolean - controls when user is editing existing pool entry
+    const [hasReceivedEditingPoolEntry, setHasReceivedEditingPoolEntry] = useState(false); // Boolean - controls when existing entry has been retrieved
+    const [displayEditingPoolEntryNotFound, setDisplayEditingPoolEntryNotFound] = useState(false); // Boolean - controls when to display warning that entry could not be found
+    const [displayEditingPoolEntryFieldWarning, setDisplayEditingPoolEntryFieldWarning] = useState(false); // Boolean - displays warning when trying to edit entry without phone and email entered
     const [expandSelectedPlayers, setExpandSelectedPlayers] = useState(false); // Boolean - controls expansion state of 
     const [snackbarMessages, setSnackbarMessages] = useState([]); // String
     
@@ -254,10 +263,85 @@ const Pool = () => {
             
             // When working locally, can comment below
             // if (configuration === "rapidApi") retrieveScheduleDataRapid();
-            if (configuration === "mongo") fetchMongoSchedule(fullYear);
+            // if (configuration === "mongo") fetchMongoSchedule(fullYear);
 
             // Prevent multiple rapidApi function calls
             setHasStartedFetch(true);
+
+            if (schedule && schedule.schedule) {
+                let tempActiveTournamentId = null;
+                let currentTournamentDay = null;
+                let isReadyToFetchNewTournamentInfo = false; // If within window that that tournemant information is available, begin fetch
+                let isReadyToGetUpdatedLeaderboardInfo = false; // If tournament in progress, should begin getting tournament info
+                for (let i = 0; i < schedule.schedule.length; i++) {
+                    const currentTournament = schedule.schedule[i];
+                    const start = new Date(currentTournament.startDate);
+                    const end = new Date(currentTournament.endDate);
+                    
+                    // Date matches start or end date
+                    if ((date - start == 0) || (date - end == 0) || (i == schedule.schedule.length - 1)) {
+                        if (date - start == 0) currentTournamentDay = 1;
+                        if (date - end == 0) currentTournamentDay = 4;
+                        tempActiveTournamentId = currentTournament.tournamentId;
+                        isReadyToGetUpdatedLeaderboardInfo = true; // On start date or end date, able to fetch a live leaderboard
+                        break;
+                    }
+                    // Current date is before end date
+                    if (date < end) {
+                        if (date > start) {
+                            // Current date is after start date (tournament in progress)
+                            tempActiveTournamentId = currentTournament.tournamentId;
+                            if (date - start == 86400000) currentTournamentDay = 2; // 1 day since tournament start
+                            if (date - start == 172800000) currentTournamentDay = 3; // 2 days since tournament start
+                            isReadyToGetUpdatedLeaderboardInfo = true; // When tournament in progress, able to fetch a live leaderboard
+                            break;
+                        } else if (i > 0) {
+                            const previousTournament = i > 0 ? schedule.schedule[i - 1] : null;
+                            const previousEndDate = new Date(previousTournament.endDate);
+                            if (date > previousEndDate) {
+                                // Config variable - (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer
+                                if (displayPreviousTournamentForOneDay) {
+                                    if ((date - previousEndDate) > 86400000) {
+                                        // If beyond 1 day from previous tournament, begin showing next
+                                        tempActiveTournamentId = currentTournament.tournamentId;
+                                        // Display pool entry form when next tournament is approaching
+                                        isReadyToFetchNewTournamentInfo = true;
+                                        break;
+                                    } else {
+                                        // If still within 1 day of previous tournament, continue showing previous 
+                                        tempActiveTournamentId = previousTournament.tournamentId;
+                                        break;
+                                    }
+                                } else {
+                                    // Set to which ever date is closer
+                                    if ((date - previousEndDate) > (start - date)) {
+                                        // If closer to next tournament, begin showing next
+                                        tempActiveTournamentId = currentTournament.tournamentId;
+                                        // Display pool entry form when next tournament is approaching
+                                        isReadyToFetchNewTournamentInfo = true;
+                                        break;
+                                    } else {
+                                        // If closer in time to last tournaments end, keep active
+                                        tempActiveTournamentId = previousTournament.tournamentId;
+                                        break;
+                                    }
+                                }
+                            }
+                        } else {
+                            // Before first tournament of year
+                            tempActiveTournamentId = currentTournament.tournamentId;
+                            break
+                        }
+                    }
+                }
+                setActiveTournamentId(tempActiveTournamentId);
+                setHighlightedTournamentId(tempActiveTournamentId);
+                // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
+                fetchMongoPlayers(fullYear, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
+                fetchMongoLeaderboard(fullYear, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
+                fetchMongoPoolEntries(fullYear, tempActiveTournamentId);
+                if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
+            }
         }
     });
 
@@ -272,97 +356,98 @@ const Pool = () => {
 
     // After scheduleResponse is returned, calculate schedule data
     useEffect(() => {
-        calculateScheduleData();
+        if (scheduleResponse) {
+            calculateScheduleData();
+        }
     }, [scheduleResponse]);
     
     // After scheduleResponse is returned, fetch tournament data (players & event info)
-    useEffect(() => {
-        if (configuration === "rapidApi") retrieveTournamentDataRapid();
-        // Identify current tournament
-        if (schedule && schedule.schedule) {
-            const current = new Date(hardCodeDate || currentDate);
-            const currentFormattedDate = current.getFullYear();
-            let tempActiveTournamentId = null;
-            let currentTournamentDay = null;
-            let isReadyToFetchNewTournamentInfo = false; // If within window that that tournemant information is available, begin fetch
-            let isReadyToGetUpdatedLeaderboardInfo = false; // If tournament in progress, should begin getting tournament info
-            for (let i = 0; i < schedule.schedule.length; i++) {
-                const currentTournament = schedule.schedule[i];
-                const start = new Date(currentTournament.startDate);
-                const end = new Date(currentTournament.endDate);
-                // Date matches start or end date
-                if ((current - start == 0) || (current - end == 0) || (i == schedule.schedule.length - 1)) {
-                    if (current - start == 0) currentTournamentDay = 1;
-                    if (current - end == 0) currentTournamentDay = 4;                        
-                    tempActiveTournamentId = currentTournament.tournamentId;
-                    isReadyToGetUpdatedLeaderboardInfo = true; // On start date or end date, able to fetch a live leaderboard
-                    break;
-                }
-                // Current date is before end date
-                if (current < end) {
-                    if (current > start) {
-                        // Current date is after start date (tournament in progress)
-                        tempActiveTournamentId = currentTournament.tournamentId;
-                        if (current - start == 86400000) currentTournamentDay = 2; // 1 day since tournament start
-                        if (current - start == 172800000) currentTournamentDay = 3; // 2 days since tournament start
-                        isReadyToGetUpdatedLeaderboardInfo = true; // When tournament in progress, able to fetch a live leaderboard
-                        break;
-                    } else if (i > 0) {
-                        const previousTournament = i > 0 ? schedule.schedule[i - 1] : null;
-                        const previousEndDate = new Date(previousTournament.endDate);
-                        if (current > previousEndDate) {
-                            // Config variable - (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer
-                            if (displayPreviousTournamentForOneDay) {
-                                if ((current - previousEndDate) > 86400000) {
-                                    // If beyond 1 day from previous tournament, begin showing next
-                                    tempActiveTournamentId = currentTournament.tournamentId;
-                                    // Display pool entry form when next tournament is approaching
-                                    isReadyToFetchNewTournamentInfo = true;
-                                    break;
-                                } else {
-                                    // If still within 1 day of previous tournament, continue showing previous  
-                                    tempActiveTournamentId = previousTournament.tournamentId;
-                                    break;
-                                }
-                            } else {
-                                // Set to which ever date is closer
-                                if ((current - previousEndDate) > (start - current)) {
-                                    // If closer to next tournament, begin showing next
-                                    tempActiveTournamentId = currentTournament.tournamentId;
-                                    // Display pool entry form when next tournament is approaching
-                                    isReadyToFetchNewTournamentInfo = true;
-                                    break;
-                                } else {
-                                    // If closer in time to last tournaments end, keep active
-                                    tempActiveTournamentId = previousTournament.tournamentId;
-                                    break;
-                                }
-                            }
-                        }
-                    } else {
-                        // Before first tournament of year
-                        tempActiveTournamentId = currentTournament.tournamentId;
-                        break
-                    }
-                }
-            }
-            setActiveTournamentId(tempActiveTournamentId);
-            setHighlightedTournamentId(tempActiveTournamentId);
-            // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
-            fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
-            fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
-            fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
-            if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
-        }
-    }, [schedule]);
+    // useEffect(() => {
+    //     if (configuration === "rapidApi") retrieveTournamentDataRapid();
+    //     // Identify current tournament
+    //     if (hasStartedFetch && schedule && schedule.schedule) {
+    //         const current = new Date(hardCodeDate || currentDate);
+    //         const currentFormattedDate = current.getFullYear();
+    //         let tempActiveTournamentId = null;
+    //         let currentTournamentDay = null;
+    //         let isReadyToFetchNewTournamentInfo = false; // If within window that that tournemant information is available, begin fetch
+    //         let isReadyToGetUpdatedLeaderboardInfo = false; // If tournament in progress, should begin getting tournament info
+    //         for (let i = 0; i < schedule.schedule.length; i++) {
+    //             const currentTournament = schedule.schedule[i];
+    //             const start = new Date(currentTournament.startDate);
+    //             const end = new Date(currentTournament.endDate);
+    //             // Date matches start or end date
+    //             if ((current - start == 0) || (current - end == 0) || (i == schedule.schedule.length - 1)) {
+    //                 if (current - start == 0) currentTournamentDay = 1;
+    //                 if (current - end == 0) currentTournamentDay = 4;                        
+    //                 tempActiveTournamentId = currentTournament.tournamentId;
+    //                 isReadyToGetUpdatedLeaderboardInfo = true; // On start date or end date, able to fetch a live leaderboard
+    //                 break;
+    //             }
+    //             // Current date is before end date
+    //             if (current < end) {
+    //                 if (current > start) {
+    //                     // Current date is after start date (tournament in progress)
+    //                     tempActiveTournamentId = currentTournament.tournamentId;
+    //                     if (current - start == 86400000) currentTournamentDay = 2; // 1 day since tournament start
+    //                     if (current - start == 172800000) currentTournamentDay = 3; // 2 days since tournament start
+    //                     isReadyToGetUpdatedLeaderboardInfo = true; // When tournament in progress, able to fetch a live leaderboard
+    //                     break;
+    //                 } else if (i > 0) {
+    //                     const previousTournament = i > 0 ? schedule.schedule[i - 1] : null;
+    //                     const previousEndDate = new Date(previousTournament.endDate);
+    //                     if (current > previousEndDate) {
+    //                         // Config variable - (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer
+    //                         if (displayPreviousTournamentForOneDay) {
+    //                             if ((current - previousEndDate) > 86400000) {
+    //                                 // If beyond 1 day from previous tournament, begin showing next
+    //                                 tempActiveTournamentId = currentTournament.tournamentId;
+    //                                 // Display pool entry form when next tournament is approaching
+    //                                 isReadyToFetchNewTournamentInfo = true;
+    //                                 break;
+    //                             } else {
+    //                                 // If still within 1 day of previous tournament, continue showing previous  
+    //                                 tempActiveTournamentId = previousTournament.tournamentId;
+    //                                 break;
+    //                             }
+    //                         } else {
+    //                             // Set to which ever date is closer
+    //                             if ((current - previousEndDate) > (start - current)) {
+    //                                 // If closer to next tournament, begin showing next
+    //                                 tempActiveTournamentId = currentTournament.tournamentId;
+    //                                 // Display pool entry form when next tournament is approaching
+    //                                 isReadyToFetchNewTournamentInfo = true;
+    //                                 break;
+    //                             } else {
+    //                                 // If closer in time to last tournaments end, keep active
+    //                                 tempActiveTournamentId = previousTournament.tournamentId;
+    //                                 break;
+    //                             }
+    //                         }
+    //                     }
+    //                 } else {
+    //                     // Before first tournament of year
+    //                     tempActiveTournamentId = currentTournament.tournamentId;
+    //                     break
+    //                 }
+    //             }
+    //         }
+    //         setActiveTournamentId(tempActiveTournamentId);
+    //         setHighlightedTournamentId(tempActiveTournamentId);
+    //         // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
+    //         fetchMongoPlayers(currentFormattedDate, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
+    //         fetchMongoLeaderboard(currentFormattedDate, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
+    //         fetchMongoPoolEntries(currentFormattedDate, tempActiveTournamentId);
+    //         if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
+    //     }
+    // }, [hasStartedFetch]);
 
     // After tournamentResponse is returned, set tournament data in mongo (players & event info)
     useEffect(() => {
         if (configuration === "rapidApi" && currentYear && highlightedTournamentId) {
-            calculatePlayerData();
             retrieveLeaderboardDataRapid(currentYear, highlightedTournamentId);
         }
-        if ((dfsSalaries.length > 0) && highlightedTournamentId) fetchMongoDfs(actualYear, highlightedTournamentId, true);
+        calculatePlayerData();
     }, [tournamentResponse]);
 
     // After leaderboardResponse is returned, set leaderboard data in mongo
@@ -375,18 +460,36 @@ const Pool = () => {
         if (actualYear && highlightedTournamentId) {
             fetchMongoDfs(actualYear, highlightedTournamentId, true)
         }
-    }, [allPlayers])
+    }, [allPlayers]);
 
     // If players already fetched and DFS salaries are not already in mongo, begin to store all data
     useEffect(() => {
         if (readyToCalculateDfsSalaries && allPlayers && dfsSalaries) {
             let tempPlayerSalaries = [];
     
-            let allPlayersNameWithoutSpaces = []
+            let allPlayersNameWithoutSpaces = [];
             let tempAllPlayersWithoutSpaces = [];
             for (let i = 0; i < allPlayers.players.length; i++) {
                 const currentPlayer = allPlayers.players[i];
-                const playerNameWithoutSpaces = `${(currentPlayer.firstName).replace(" ", "")}${(currentPlayer.lastName).replace(" ", "")}`;
+                let playerNameWithoutSpaces = `${(currentPlayer.firstName).replace(/ /g, "").toLowerCase()}${(currentPlayer.lastName).replace(/ /g, "").toLowerCase()}`;
+                
+                // Some player names are the exactly the same between DFS salary data and Rapid API player data
+                // START HARDCODED PLAYER NAMES
+                playerNameWithoutSpaces = playerNameWithoutSpaces.replaceAll(".","") // Replace "." (example: K.H. Lee)
+                playerNameWithoutSpaces = playerNameWithoutSpaces.replaceAll("-","") // Replace "-" (example: Kyoung-Hoon Lee)
+                playerNameWithoutSpaces = playerNameWithoutSpaces.replaceAll("å","a") // ludvigåberg
+                playerNameWithoutSpaces = playerNameWithoutSpaces.replaceAll("ø","o") // højgaard
+                if (playerNameWithoutSpaces === "camdavis") playerNameWithoutSpaces = "camerondavis"; // "camdavis" (tournamentResponse) -> "camerondavis" (DFS salary)
+                if (playerNameWithoutSpaces === "nicoechavarria") playerNameWithoutSpaces = "nicolasechavarria"; // "nicoechavarria" -> "nicolasechavarria"
+                if (playerNameWithoutSpaces === "frankiecapaniii") playerNameWithoutSpaces = "frankiecapan"; // "frankiecapan" -> "frankiecapaniii"
+                if (playerNameWithoutSpaces === "joseluisballesterbarrio") playerNameWithoutSpaces = "joseluisballester"; // "joseluisballesterbarrio" -> "joseluisballester"
+                if (playerNameWithoutSpaces === "khlee") playerNameWithoutSpaces = "kyounghoonlee"; // "khlee" -> "kyounghoonlee"
+                if (playerNameWithoutSpaces === "mattmccarty") playerNameWithoutSpaces = "matthewmccarty"; // "mattmccarty" -> "matthewmccarty"
+                {/*
+                if (playerNameWithoutSpaces === "") playerNameWithoutSpaces = ""; // "" -> ""
+                */}
+                // END HARDCODED PLAYER NAMES
+                
                 allPlayersNameWithoutSpaces.push(playerNameWithoutSpaces)
                 tempAllPlayersWithoutSpaces.push({
                     ...currentPlayer,
@@ -398,7 +501,9 @@ const Pool = () => {
             let salaryPlayersNotFoundInPlayersListFromMongo = [];
             for (let i = 0; i < dfsSalaries.length; i++) {
                 const currentDfsPlayer = dfsSalaries[i];
-                const currentDfsPlayerWithoutSpaces = (currentDfsPlayer.name).replace(" ", "");
+                let currentDfsPlayerWithoutSpaces = (currentDfsPlayer.name).replaceAll(/ /g, "").toLowerCase();
+                currentDfsPlayerWithoutSpaces = currentDfsPlayerWithoutSpaces.replaceAll(".",""); // Replace "." (example: K.H. Lee)
+                currentDfsPlayerWithoutSpaces = currentDfsPlayerWithoutSpaces.replaceAll("-",""); // Replace "-" (example: Kyoung-Hoon Lee)
                 salaryNamesWithoutSpaces.push(currentDfsPlayerWithoutSpaces)
                 const playerFoundIndex = tempAllPlayersWithoutSpaces.findIndex(player => player.playerNameWithoutSpaces === currentDfsPlayerWithoutSpaces);
                 if (playerFoundIndex >= 0) {
@@ -415,6 +520,12 @@ const Pool = () => {
                     salaryPlayersNotFoundInPlayersListFromMongo.push({
                         ...currentDfsPlayer
                     });
+                }
+            }
+
+            for (let i = 0; i < allPlayersNameWithoutSpaces.length; i++) {
+                if (!salaryNamesWithoutSpaces.includes(allPlayersNameWithoutSpaces[i])) {
+                    console.error(`Player from Rapid API data not found in salary list: ${allPlayersNameWithoutSpaces[i]}`)
                 }
             }
 
@@ -437,14 +548,14 @@ const Pool = () => {
             setSortedDfsSalaries(tempSortedDfsSalaries);
             saveDfs(tempDfsObj);
         }
-    }, [allPlayers, readyToCalculateDfsSalaries])
+    }, [allPlayers, readyToCalculateDfsSalaries]);
 
     // Once pool data is fetched from mongo, begin calculating leaderboard
     useEffect(() => {
         if (pool && leaderboard && !poolLeaderboardUpdated) {
             calculatePoolData();
         }
-    }, [pool, leaderboard])
+    }, [pool, leaderboard]);
 
     // Set loading state
     useEffect(() => {
@@ -546,6 +657,32 @@ const Pool = () => {
             });
     }
 
+        // Update pool form entry
+        const updatePoolFormEntry = (obj) => {
+            setIsPoolFormEntryLoading(true);
+            axios.put('https://worldofjack-server.onrender.com/edit-poolEntry', obj)
+                .then((response) => {
+                    setSnackbarMessages([...snackbarMessages, "Pool entry saved"]);
+                    setIsPoolFormEntryLoading(false);
+                    setPoolForm({
+                        errors: {},
+                        checkbox: true,
+                        name: poolForm.name,
+                        phone: poolForm.phone,
+                        email: poolForm.email,
+                        suggestions: poolForm.suggestions 
+                    });
+                    setDisplayEntrySubmittedMessage(true);
+                    setIsEditingPoolEntry(false);
+                    setHasReceivedEditingPoolEntry(false);
+                })
+                .catch((error) => {
+                    setSnackbarMessages([...snackbarMessages, "Error saving pool entry"]);
+                    console.error('Error saving pool entry form:', error);
+                    setIsPoolFormEntryLoading(false);
+                });
+        }
+
 
     // END MONGO SAVES
 
@@ -578,9 +715,8 @@ const Pool = () => {
         } catch (err) {
             console.error('Error fetching saved players');
             setIsAllPlayersLoading(false);
-            // console.log("retrieveTournamentDataWhenReadyAndSavedPlayersNotFound",retrieveTournamentDataWhenReadyAndSavedPlayersNotFound)
             if (retrieveTournamentDataWhenReadyAndSavedPlayersNotFound) {
-                // retrieveTournamentDataRapid();
+                retrieveTournamentDataRapid(currentYear, tournamentId);
             }
         }
     }
@@ -635,7 +771,7 @@ const Pool = () => {
                     })
             } catch (err) {
                 // Fetch new leaderboard when tournament in progress and no existing leaderboard is available
-                console.error(`Error fetching saved leaderboard${isReadyToGetUpdatedLeaderboardInfo && !preventLeaderboardRetries && ", attempting to fetch initial leaderboard"}`);
+                console.error(`Error fetching saved leaderboard (isReadyToGetUpdatedLeaderboardInfo: ${isReadyToGetUpdatedLeaderboardInfo}), (!preventLeaderboardRetries ${!preventLeaderboardRetries}), attempting to fetch initial leaderboard`);
                 if (isReadyToGetUpdatedLeaderboardInfo && !preventLeaderboardRetries) {
                     retrieveLeaderboardDataRapid(currentYear, tournamentId);
                 } 
@@ -665,6 +801,31 @@ const Pool = () => {
         }
     }
 
+    const fetchMongoPoolEntryBeingEdited = async () => {
+        setIsPoolLoading(true);
+        if (currentYear && highlightedTournamentId) {
+            try {
+                await axios.get("https://worldofjack-server.onrender.com/get-poolEntryBeingEdited", { params: { year: currentYear, tournamentId: highlightedTournamentId, "entryData.phone": poolForm.phone, "entryData.email": poolForm.email }})
+                    .then((response) => {
+                        setIllustrativePlayers(
+                            response.data.entryData.selectedPlayers
+                        );
+                        handleFormChange("name", response.data.entryData.name);
+                        const tempIllustrativeSalaryCap = calculateSalaryCapUsed(response.data.entryData.selectedPlayers);
+                        setIllustrativeSalaryCap(tempIllustrativeSalaryCap);
+                        setIsPoolLoading(false);
+                        setHasReceivedEditingPoolEntry(true);
+                    })
+            } catch (err) {
+                setDisplayEditingPoolEntryNotFound(true);
+                console.error('Error fetching pool entry');
+                setIsPoolLoading(false);
+            }
+        } else {
+            console.error(`Did not begin fetching pool entry, did not have year (${currentYear}) or tournamantId (${highlightedTournamentId})`)
+        }
+    }
+
     const fetchMongoPoolEntries = async (currentYear, tournamentId) => {
         setIsPoolLoading(true);
         if (currentYear && tournamentId) {
@@ -691,34 +852,32 @@ const Pool = () => {
 
 
     const calculateScheduleData = () => {
-        if (scheduleResponse) {
-            // Set tournament schedule
-            let tempSchedule = [];
-            for (let i = 0; i < scheduleResponse.schedule.length; i++) {
-                const currentTournament = scheduleResponse.schedule[i];
-                // In 2026, this might not work as expected, due to date formats
-                const rawStartDate = currentTournament.date.start;
-                const rawEndDate = currentTournament.date.end;
-                const formattedStartDate = moment(rawStartDate).utc().format('MM/DD/YY');
-                const formattedEndDate = moment(rawEndDate).utc().format('MM/DD/YY');
-                tempSchedule.push({
-                    tournamentId: currentTournament.tournId,
-                    name: currentTournament.name,
-                    startDate: formattedStartDate,
-                    endDate: formattedEndDate,
-                    weekNumber: parseInt(currentTournament.date.weekNumber)
-                });
-            }
-            tempSchedule = tempSchedule.sort((a, b) => a.weekNumber - b.weekNumber)
-            
-            const tempScheduleObj = {
-                year: scheduleResponse.year,
-                schedule: tempSchedule
-            };
-
-            setSchedule(tempScheduleObj);
-            saveSchedule(tempScheduleObj);
+        // Set tournament schedule
+        let tempSchedule = [];
+        for (let i = 0; i < scheduleResponse.schedule.length; i++) {
+            const currentTournament = scheduleResponse.schedule[i];
+            // In 2026, this might not work as expected, due to date formats
+            const rawStartDate = currentTournament.date.start;
+            const rawEndDate = currentTournament.date.end;
+            const formattedStartDate = moment(rawStartDate).utc().format('MM/DD/YY');
+            const formattedEndDate = moment(rawEndDate).utc().format('MM/DD/YY');
+            tempSchedule.push({
+                tournamentId: currentTournament.tournId,
+                name: currentTournament.name,
+                startDate: formattedStartDate,
+                endDate: formattedEndDate,
+                weekNumber: parseInt(currentTournament.date.weekNumber)
+            });
         }
+        tempSchedule = tempSchedule.sort((a, b) => a.weekNumber - b.weekNumber)
+        
+        const tempScheduleObj = {
+            year: scheduleResponse.year,
+            schedule: tempSchedule
+        };
+
+        setSchedule(tempScheduleObj);
+        saveSchedule(tempScheduleObj);
     }
 
     const calculatePlayerData = () => {
@@ -757,8 +916,6 @@ const Pool = () => {
             const tempLeaderboard = []
             for (let i = 0; i < responseLeaderboard.length; i++) {
                 const currentPlayer = responseLeaderboard[i];
-                // console.log("responseLeaderboard",responseLeaderboard)
-                // console.log("currentPlayer.teeTimeTimestamp",currentPlayer.teeTimeTimestamp)
                 tempLeaderboard.push({
                     playerDemographics: {
                         firstName: currentPlayer.firstName || null,
@@ -1043,13 +1200,11 @@ const Pool = () => {
     }
 
     // Retrieve tournament data (players & event info)
-    const retrieveTournamentDataRapid = async () => {
+    const retrieveTournamentDataRapid = async (currentYear, tournamentId) => {
         // Link
         // https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_8a041a6a-98bc-4ed2-95af-4dcdb76f7c66
-        // console.log("highlightedTournamentId", highlightedTournamentId)
-        // console.log("currentYear ", currentYear )
-        // console.log("!preventTournamentRetries", !preventTournamentRetries)
-        if (highlightedTournamentId && currentYear && !preventTournamentRetries) {
+
+        if (currentYear && tournamentId && !preventTournamentRetries) {
             setPreventTournamentRetries(true);
             setIsAllPlayersLoading(true);
     
@@ -1058,7 +1213,7 @@ const Pool = () => {
                 url: 'https://live-golf-data.p.rapidapi.com/tournament',
                 params: {
                     orgId: '1',
-                    tournId: highlightedTournamentId,
+                    tournId: tournamentId,
                     year: currentYear
                 },
                 headers: {
@@ -1168,7 +1323,7 @@ const Pool = () => {
         });
     }
 
-    const handleSubmitPoolEntry = () => {
+    const handleUpdateAndSubmitPoolEntry = (isUpdatingExistingEntry) => {
         if (Object.keys(poolForm.errors).length > 0) {
             setDisplayPoolFormError(true);
         } else {
@@ -1184,7 +1339,11 @@ const Pool = () => {
                     salaryCapUsed: illustrativeSalaryCap
                 }
             }
-            savePoolFormEntry(poolSubmissionObject);
+            if (isUpdatingExistingEntry) {
+                updatePoolFormEntry(poolSubmissionObject);
+            } else {
+                savePoolFormEntry(poolSubmissionObject);
+            }
         }
     }
 
@@ -1227,6 +1386,14 @@ const Pool = () => {
         setFilteredIllustrativePlayers(tempSortedDfsSalaries);
     }
 
+    const calculateSalaryCapUsed = (players) => {
+        let tempIllustrativeSalaryCap = 0;
+        for (let i = 0; i < players.length; i++) {
+            tempIllustrativeSalaryCap = parseFloat((tempIllustrativeSalaryCap + players[i].salary).toFixed(2));
+        }
+        return tempIllustrativeSalaryCap;
+    }
+
     const handleSetIllustrativePlayers = (player) => {
         // Make copy of existing illustrativePlayers
         let tempIllustrativePlayers = [...illustrativePlayers];
@@ -1249,13 +1416,9 @@ const Pool = () => {
         }
 
         // Calculate salary cap
-        let tempIllustrativeSalaryCap = 0;
-        for (let i = 0; i < tempIllustrativePlayers.length; i++) {
-            tempIllustrativeSalaryCap = parseFloat((tempIllustrativeSalaryCap + tempIllustrativePlayers[i].salary).toFixed(2));
-        }
+        let tempIllustrativeSalaryCap = calculateSalaryCapUsed(tempIllustrativePlayers);
 
         setIllustrativePlayers(tempIllustrativePlayers);
-        setFilteredIllustrativePlayers(tempIllustrativePlayers);
         setIllustrativeSalaryCap(tempIllustrativeSalaryCap);
     }
 
@@ -1365,34 +1528,45 @@ const Pool = () => {
         }
     };
 
-    // const handleSearchIllustrativePlayers = (query) => {
-    //     const queryWithoutSpaces = query.replace(" ", "");
-    //     const queryWithoutSpacesLowerCase = queryWithoutSpaces.toLowerCase();
-    //     let tempFilteredIllustrativePlayers = [];
+    const handleSearchIllustrativePlayers = (query) => {
+        const queryWithoutSpaces = query.replace(/ /g, "");
+        const queryWithoutSpacesLowerCase = queryWithoutSpaces.toLowerCase();
+        let tempFilteredIllustrativePlayers = [];
 
-    //     console.log("\n\nsortedDfsSalaries",sortedDfsSalaries)
-    //     console.log("queryWithoutSpaces",queryWithoutSpaces)
+        for (let i = 0; i < sortedDfsSalaries.length; i++) {
+            const currentPlayerFirstName = sortedDfsSalaries[i].firstName;
+            const currentPlayerLastName = sortedDfsSalaries[i].lastName;
+            const currentPlayerFirstNameWithoutSpaces = currentPlayerFirstName.replace(/ /g, "");
+            const currentPlayerLastNameWithoutSpaces = currentPlayerLastName.replace(/ /g, "");
+            const currentPlayerFirstNameWithoutSpacesLowerCase = currentPlayerFirstNameWithoutSpaces.toLowerCase();
+            const currentPlayerLastNameWithoutSpacesLowerCase = currentPlayerLastNameWithoutSpaces.toLowerCase();
+            const currentPlayerNameWithoutSpaces = `${currentPlayerFirstNameWithoutSpacesLowerCase}${currentPlayerLastNameWithoutSpacesLowerCase}`;
+            if (currentPlayerNameWithoutSpaces.includes(queryWithoutSpacesLowerCase)) {
+                tempFilteredIllustrativePlayers.push(sortedDfsSalaries[i]);
+            }
+        }
 
+        setIllustrativePlayerSearchQuery(query);
+        setFilteredIllustrativePlayers(tempFilteredIllustrativePlayers);
+    }
 
-    //     for (let i = 0; i < sortedDfsSalaries.length; i++) {
-    //         const currentPlayerFirstName = sortedDfsSalaries[i].firstName;
-    //         const currentPlayerLastName = sortedDfsSalaries[i].lastName;
-    //         const currentPlayerFirstNameWithoutSpaces = currentPlayerFirstName.replace(" ", "");
-    //         const currentPlayerLastNameWithoutSpaces = currentPlayerLastName.replace(" ", "");
-    //         const currentPlayerFirstNameWithoutSpacesLowerCase = currentPlayerFirstNameWithoutSpaces.toLowerCase();
-    //         const currentPlayerLastNameWithoutSpacesLowerCase = currentPlayerLastNameWithoutSpaces.toLowerCase();
-    //         const currentPlayerNameWithoutSpaces = `${currentPlayerFirstNameWithoutSpacesLowerCase}${currentPlayerLastNameWithoutSpacesLowerCase}`;
-    //         console.log("currentPlayerNameWithoutSpaces",currentPlayerNameWithoutSpaces)
-    //         console.log("currentPlayerNameWithoutSpaces",currentPlayerNameWithoutSpaces)
-    //         if (currentPlayerNameWithoutSpaces.includes(queryWithoutSpacesLowerCase)) {
-    //             filteredIllustrativePlayers.push(sortedDfsSalaries[i]);
-    //         }
-    //     }
+    const handleEditEntryClick = () => {
+        if (!poolForm.email || !poolForm.phone || poolForm.email === "" || poolForm.phone === "" || poolForm.errors.email) {
+            setDisplayEditingPoolEntryFieldWarning(true);
+            setIsEditingPoolEntry(true);
+        } else {
+            setDisplayEditingPoolEntryFieldWarning(false);
+            fetchMongoPoolEntryBeingEdited();
+            setDisplayEntrySubmittedMessage(false)
+        }
+    }
 
-    //     console.log("tempFilteredIllustrativePlayers",tempFilteredIllustrativePlayers)
-
-    //     setFilteredIllustrativePlayers(tempFilteredIllustrativePlayers);
-    // }
+    const getColumnCount = () => {
+        if (screenWidth > 1500) return "5";
+        if (screenWidth > 1200) return "4";
+        if (screenWidth < 900) return "2";
+        return "3";
+    }
 
 
     // END UI FUNCTIONS
@@ -1452,13 +1626,14 @@ const Pool = () => {
                     
                     {/* Pool entry form */}
                     {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) &&
-                        <div style={{ width: "85%" }}>
+                        <div style={{ width: screenWidth < 1000 ? "100%" : "85%" }}>
                             {/* Pool entry form */}
                             <div className="flexColumn" style={{ width: "420px", margin: "16px auto" }}>
                                 {/* Submitted message */}
                                 {displayEntrySubmittedMessage && 
                                     <Alert severity="success" style={{ marginTop: "16px", marginBottom: "16px", width: "390px" }}>
-                                        Your entry was submitted successfully. Your selections have been saved if you would like to submit another entry.
+                                        Your entry was submitted successfully.
+                                        {/* Your selections have been saved if you would like to submit another entry. */}
                                     </Alert>
                                 }
                                 {/* Errors */}
@@ -1474,6 +1649,16 @@ const Pool = () => {
                                         </ul>
                                     </Alert>
                                 }
+                                {displayEditingPoolEntryFieldWarning &&
+                                    <Alert severity="info" style={{ marginTop: "16px", marginBottom: "16px", width: "380px" }}>
+                                        <h3>Enter phone and email to find existing entry</h3>
+                                    </Alert>
+                                }
+                                {displayEditingPoolEntryNotFound &&
+                                    <Alert severity="info" style={{ marginTop: "16px", marginBottom: "16px", width: "420px" }}>
+                                        <h3>Existing entry could not be found. Email <a className="blackFont textDecoration" href= "mailto:GilsonGolfPools@gmail.com">GilsonGolfPools@gmail.com</a> for additional help.</h3>
+                                    </Alert>
+                                }
                                 {/* Entry form fields */}
                                 <TextField value={poolForm.name || null} style={{ maxWidth: "420px" }} id="fullName" label="Full Name" variant="outlined" onChange={(e) => handleFormChange("name", e.target.value)} />
                                 <TextField value={poolForm.phone || null} style={{ maxWidth: "420px" }} id="fullName" label="Phone" variant="outlined" onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
@@ -1482,38 +1667,75 @@ const Pool = () => {
                                     <FormControlLabel control={<Checkbox onChange={() => handleFormChange("checkbox", poolForm.checkbox ? !poolForm.checkbox : true)} />} label={<div className="whiteFont">*I have paid via Venmo <b>@jcgilson</b> or Apple Pay <b>(317) 213-8188</b></div>} />
                                 </div> */}
                                 {/* <h1>ADD SUGGESTION BOX HERE</h1> */}
-                                <Button
-                                    variant="outlined"
-                                    color="white"
-                                    className="whiteButton"
-                                    style={{ width: "84px", margin: "0 auto" }}
-                                    disabled={(illustrativePlayers.length !== 6) || !poolForm.checkbox || (illustrativeSalaryCap > 100) || (displayPoolFormError && Object.keys(poolForm.errors).length > 0)}
-                                    onClick={() => handleSubmitPoolEntry()}
-                                >
-                                    Submit
-                                </Button>
+                                <div className="width100Percent flexRow justifyCenter">
+                                    {!hasReceivedEditingPoolEntry &&
+                                        <Button
+                                            variant="outlined"
+                                            color="white"
+                                            className="whiteButton marginTopLarge marginRightMedium"
+                                            style={{ width: "96px" }}
+                                            // disabled={}
+                                            onClick={() => handleEditEntryClick()}
+                                        >
+                                            Edit Entry
+                                        </Button>
+                                    }
+                                    {!displayEntrySubmittedMessage &&
+                                        <Button
+                                            variant="outlined"
+                                            color="white"
+                                            className="whiteButton marginTopLarge"
+                                            style={{ width: "84px" }}
+                                            disabled={(illustrativePlayers.length !== 6) || !poolForm.checkbox || (illustrativeSalaryCap > 100) || (displayPoolFormError && Object.keys(poolForm.errors).length > 0)}
+                                            onClick={() => handleUpdateAndSubmitPoolEntry(hasReceivedEditingPoolEntry)}
+                                        >
+                                            {isEditingPoolEntry && hasReceivedEditingPoolEntry ? "Save" : "Submit"}
+                                        </Button>
+                                    }
+                                </div>
                             </div>
 
                             <Divider className="marginTopExtraLarge" color="white" />
 
                             {/* Instructions and sorting */}
-                            <div className="width100Percent flexRow justifySpaceBetween alignCenter" style={{ margin: "16px auto" }}>
-                                <div className="flexRow">
-                                    <h2 className="whiteFont">Select 6 players staying under the $100 salary cap</h2>
-                                    <Tooltip
-                                        title={
-                                            <ul>
-                                                <li key={1} className="whiteFont">Select 6 golfers staying under a $100 salary cap</li>
-                                                <li key={2} className="whiteFont">Each round your top 4 golfers score is counted</li>
-                                                <li key={3} className="whiteFont">Cut players round scores become +18</li>
-                                            </ul>
+                            <div className="width100Percent flexFlowRowWrap justifySpaceBetween alignCenter" style={{ margin: "16px auto" }}>
+                                {/* Player search */}
+                                <TextField
+                                    id="outlined-basic"
+                                    label="Search Players"
+                                    variant="outlined"
+                                    value={illustrativePlayerSearchQuery}
+                                    onChange={(e) => handleSearchIllustrativePlayers(e.target.value)}
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: illustrativePlayerSearchQuery === ""
+                                                ? null
+                                                : <InputAdornment
+                                                        position="end"
+                                                        onClick={() => {
+                                                            setIllustrativePlayerSearchQuery("");
+                                                            setFilteredIllustrativePlayers(sortedDfsSalaries);
+                                                        }}
+                                                    >
+                                                        <CloseIcon className="whiteFont" />
+                                                    </InputAdornment>
                                         }
-                                    >
-                                        <InfoIcon fontSize="small" className="whiteFont marginLeftMedium" />
-                                    </Tooltip>
-                                </div>
-                                {/* <TextField value="" id="outlined-basic" label="Search Players" variant="outlined" onChange={(e) => handleSearchIllustrativePlayers(e.target.value)} /> */}
-                                <div className="flexRow alignCenter marginTopExtraLarge marginBottomMedium">
+                                    }}
+                                />
+                                {/* Rules */}
+                                <Tooltip
+                                    title={
+                                        <ul>
+                                            <li key={1} className="whiteFont">Select 6 golfers staying under a $100 salary cap</li>
+                                            <li key={2} className="whiteFont">Each round your top 4 golfers score is counted</li>
+                                            <li key={3} className="whiteFont">Cut players round scores become +18</li>
+                                        </ul>
+                                    }
+                                >
+                                    <h2 className="whiteFont textDecoration">View Rules</h2>
+                                </Tooltip>
+                                {/* Sorting */}
+                                <div className="flexRow alignCenter marginLeftMedium marginRightSmall">
                                     <h3 className="whiteFont paddingBottomExtraSmall">Sort by</h3>
                                     <div className="flexRow alignCenter marginLeftSmall" onClick={() => handleDfsSortMethod("salary")}>
                                         <div style={{ width: "24px" }}>
@@ -1524,7 +1746,7 @@ const Pool = () => {
                                                 : null
                                             }
                                         </div>
-                                        <h2 className="whiteFont paddingBottomSmall" style={{ textDecoration: "underline" }}>Salary</h2>
+                                        <h2 className="whiteFont paddingBottomExtraSmall" style={{ textDecoration: "underline" }}>Salary</h2>
                                     </div>
                                     <div className="flexRow alignCenter marginLeftMedium" onClick={() => handleDfsSortMethod("lastName")}>
                                         <div style={{ width: "24px" }}>
@@ -1535,17 +1757,17 @@ const Pool = () => {
                                                 : null
                                             }
                                         </div>
-                                        <h2 className="whiteFont paddingBottomSmall" style={{ textDecoration: "underline" }}>Name</h2>
+                                        <h2 className="whiteFont paddingBottomExtraSmall" style={{ textDecoration: "underline" }}>Name</h2>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Illustrative player selection */}
                             <FormGroup>
-                                <ul style={{ marginTop: "0px", paddingLeft: "0", columnCount: screenWidth > 1480 ? "6" : screenWidth < 900 ? "2" : "3", columnGap: "16px" }}>
+                                <ul style={{ marginTop: "0px", paddingLeft: "0", columnCount: getColumnCount(), columnGap: "8px" }}>
                                     {filteredIllustrativePlayers.map(player => {
                                         return (
-                                            <li key={player.playerId} className={`flexRow alignCenter playerOption${!(illustrativePlayers.map(currentPlayer => currentPlayer.playerId)).includes(player.playerId) && illustrativePlayers.length == 6 ? " disabled" : ""}`} >
+                                            <li key={player.playerId} className={`flexRow alignCenter playerOption${!(illustrativePlayers.map(currentPlayer => currentPlayer.playerId)).includes(player.playerId) && illustrativePlayers.length == 6 ? " disabled" : ""}${screenWidth < 1000 ? " fontSizeOverride" : ""}`} >
                                                 <FormControlLabel
                                                     checked={(illustrativePlayers.map(currentPlayer => currentPlayer.playerId)).includes(player.playerId)}
                                                     disabled={
@@ -1555,9 +1777,9 @@ const Pool = () => {
                                                         <Checkbox onClick={() => handleSetIllustrativePlayers(player)}/>
                                                     }
                                                     label={
-                                                        <p className="whiteFont" style={{ maxWidth: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                                        <p className="whiteFont" style={{ maxWidth: "234px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                                             <span className="marginRightExtraSmall">$</span>
-                                                            <b className="whiteFont" style={{ display: "inline-block", width: "40px" }}>{player.salary} </b>
+                                                            <b className="whiteFont" style={{ display: "inline-block", width: "44px" }}>{player.salary} </b>
                                                             {player.isAmateur ? "(a) " : ""}{player.lastName}, {player.firstName}
                                                         </p>
                                                     }
@@ -1574,36 +1796,41 @@ const Pool = () => {
                                 <div style={{ position: "fixed", left: "calc(50% - 150px)",bottom: "0px", width: "300px" }}>
                                     <Accordion expanded={expandSelectedPlayers && illustrativePlayers.length > 0} onChange={() => setExpandSelectedPlayers(!expandSelectedPlayers)}>
                                         <AccordionSummary
-                                            expandIcon={<ExpandMoreIcon />}
+                                            expandIcon={<ExpandMoreIcon className="blackFont" />}
                                             aria-controls="panel1bh-content"
                                             id="panel1bh-header"
                                         >
-                                            <span className="width100Percent justifySpaceBetween"><div>Lineup ({illustrativePlayers.length}/6 selected)</div><div style={{ marginRight: "16px" }} className={illustrativeSalaryCap <= 100 ? "greenFont" : "redFont"}>${illustrativeSalaryCap}</div></span>
+                                            <span className="width100Percent justifySpaceBetween"><div className="blackFont">Lineup ({illustrativePlayers.length}/6 selected)</div><div style={{ marginRight: "16px" }} className={illustrativeSalaryCap <= 100 ? "greenFont" : "redFont"}>${illustrativeSalaryCap}</div></span>
                                         </AccordionSummary>
                                         <AccordionDetails>
                                             <Divider className="marginBottomMedium" />
                                             {illustrativePlayers.sort((a, b) => {
                                                 if (a.salary !== b.salary) {
-                                                    return a.salary - b.salary; // Sort by 'salary'
+                                                    return b.salary - a.salary; // Sort by 'salary'
                                                 } else {
                                                     return a.lastName - b.lastName; // If 'salary' values are equal, sort by 'lastName'
                                                 }
                                             }).map(player => {
                                                 return (
-                                                    <p
-                                                        key={player.playerId}
-                                                        className="flexRow marginTopExtraSmall marginBottomExtraSmall"
-                                                    >
-                                                        <span className="marginRightExtraSmall">$</span>
-                                                        <b style={{ display: "inline-block", width: "36px" }}>{player.salary}</b>
-                                                        {player.isAmateur ? "(a) " : ""}{player.firstName} {player.lastName}
-                                                    </p>
+                                                    <div className="width100Percent flexRow justifySpaceBetween">
+                                                        <p
+                                                            key={player.playerId}
+                                                            className="flexRow marginTopExtraSmall marginBottomExtraSmall blackFont"
+                                                        >
+                                                            <span className="marginRightExtraSmall blackFont">$</span>
+                                                            <b style={{ display: "inline-block", width: "36px", color: "black" }}>{player.salary}</b>
+                                                            {player.isAmateur ? "(a) " : ""}{player.lastName}, {player.firstName}
+                                                        </p>
+                                                        <CloseIcon
+                                                            onClick={() => handleSetIllustrativePlayers(player)}
+                                                        />
+                                                    </div>
                                                 );
                                             })}
                                             <Divider className="marginTopMedium" />
                                             <div className="width100Percent justifySpaceBetween marginTopMedium">
-                                                <p>Salary</p>
-                                                <span>
+                                                <p className="blackFont">Salary cap used</p>
+                                                <span className="blackFont">
                                                     <span className={illustrativeSalaryCap <= 100 ? "greenFont" : "redFont"}>${illustrativeSalaryCap} </span>
                                                     / $100
                                                 </span>
@@ -1614,7 +1841,6 @@ const Pool = () => {
                             }
                         </div>
                     }
-
 
                     {/* Pool leaderboard and Leaderboard */}
                     <div className={screenWidth > 1480 ? "flexFlowRowWrap leaderboardsContainer" : "flexColumn leaderboardsContainer"}>

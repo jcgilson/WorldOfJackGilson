@@ -1,9 +1,9 @@
 // server.js
-import { uri } from "./uri.js";
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
+// import { uri } from "./uri.js";
 
 // const env = "golf"
 const env = "pool"
@@ -23,8 +23,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB URI (Replace with your MongoDB Atlas URI or local URI)
-const mongoURI = uri; // local env (import above)
-// const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
+const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
 // const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_GOLF; // deployed GOLF env
 
 // Connect to MongoDB
@@ -246,6 +245,30 @@ app.post('/add-poolEntry', async (req, res) => {
   }
 });
 
+// PUT route to edit existing pool entry
+app.put('/edit-poolEntry', async (req, res) => {
+  try {
+    const result = await PoolsCollection.findOneAndUpdate(
+      { "tournamentId": req.body.tournamentId, "year": req.body.year, "entryData.phone": req.body.entryData.phone, "entryData.email": req.body.entryData.email },
+      { $set:
+        {
+          year: req.body.year,
+          tournamentId: req.body.tournamentId,
+          entryData: req.body.entryData
+        }
+      },
+      { new: true }
+    )
+    if (result) {
+      res.json({ message: 'Pool entry saved' });
+    } else {
+      res.json({ message: 'Pool entry not saved' });
+    }
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+})
+
 // GET route to fetch annual schedule
 app.get('/get-schedule', async (req, res) => {try {
   const schedule = await ScheduleCollection.findOne({ year: req.query.year });
@@ -289,7 +312,21 @@ app.get('/get-dfs', async (req, res) => {
   }
 });
 
-// GET route to fetch poolentrys
+// GET route to fetch editing pool entry
+app.get('/get-poolEntryBeingEdited', async (req, res) => {
+  try {
+    let poolEntry = await PoolsCollection.find(req.query);
+    console.log("poolEntry",poolEntry)
+    delete poolEntry.entryData.email;
+    delete poolEntry.entryData.phone;
+    if (!poolEntry) return res.status(404).send(`Pool entry not found`);
+    return res.json(poolEntry[0]);
+  } catch (error) {
+    res.status(500).send("Server error while fetching existing pool entry");
+  }
+});
+
+// GET route to fetch pool entries
 app.get('/get-poolEntries', async (req, res) => {
   try {
     const poolEntries = await PoolsCollection.find(req.query);

@@ -1007,44 +1007,45 @@ export const calculatePuttingMetrics = (puttingData, displayedRounds) => {
     for (let putt of puttingData) {
         if (putt.dth > 60) putt.dth = 60; // Reduce width of putting table, anything 60+ feet in one column
         // if (putt.dth === 0 || putt.dth % 3 === 0) {
+            const currentPutts = putt.putts > 3 ? 3 : putt.putts
             if (displayedRoundKeys.includes(putt.round)) { // Additional filter for only displayed rounds
                 if (puttingMetrics.makeByDistance[`from${putt.dth}`]) {
-                    puttingMetrics.makeByDistance[`from${putt.dth}`][`num${putt.putts}Putts`]++;
+                    puttingMetrics.makeByDistance[`from${putt.dth}`][`num${currentPutts}Putts`]++;
                     puttingMetrics.makeByDistance[`from${putt.dth}`].totalPutts++;
                 } else { // Add putt by distance
                     // if (putt.dth === 16) console.log("putt16",putt)
                     puttingMetrics.makeByDistance[`from${putt.dth}`] = {
                         distance: putt.dth,
                         totalPutts: 1,
-                        num0Putts: putt.putts === 0 ? 1 : 0,
-                        num1Putts: putt.putts === 1 ? 1 : 0,
-                        num2Putts: putt.putts === 2 ? 1 : 0,
-                        num3Putts: putt.putts === 3 ? 1 : 0,
-                        num4Putts: putt.putts > 3 ? 1 : 0
+                        num0Putts: currentPutts === 0 ? 1 : 0,
+                        num1Putts: currentPutts === 1 ? 1 : 0,
+                        num2Putts: currentPutts === 2 ? 1 : 0,
+                        num3Putts: currentPutts === 3 ? 1 : 0,
+                        num4Putts: currentPutts > 3 ? 1 : 0
                     }
                 }
                 // console.log("puttingMetrics.allPutts.gir",puttingMetrics.allPutts.gir)
-                // console.log("[`num${putt.putts}Putts`]",[`num${putt.putts}Putts`])
-                // console.log("puttingMetrics.allPutts.gir[`num${putt.putts}Putts`]",puttingMetrics.allPutts.gir[`num${putt.putts}Putts`])
+                // console.log("[`num${currentPutts}Putts`]",[`num${currentPutts}Putts`])
+                // console.log("puttingMetrics.allPutts.gir[`num${currentPutts}Putts`]",puttingMetrics.allPutts.gir[`num${currentPutts}Putts`])
                 if (putt.gir === "G" || putt.gir === "G-1") {
                     // console.log("\n\nputtingMetrics.allPutts.gir",puttingMetrics.allPutts.gir)
-                    // console.log("puttingMetrics.allPutts.gir[`num${putt.putts}Putts`]",puttingMetrics.allPutts.gir[`num${putt.putts}Putts`])
-                    // console.log("putt.putts",putt.putts)
+                    // console.log("puttingMetrics.allPutts.gir[`num${currentPutts}Putts`]",puttingMetrics.allPutts.gir[`num${currentPutts}Putts`])
+                    // console.log("currentPutts",currentPutts)
                     puttingMetrics.allPutts.gir.byScore.total++;
-                    puttingMetrics.allPutts.gir[`num${putt.putts}Putts`].total++; //
+                    puttingMetrics.allPutts.gir[`num${currentPutts}Putts`].total++; //
                     // puttingMetrics.allPutts.gir.byScore[`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`].total++;
-                    puttingMetrics.allPutts.gir[`num${putt.putts}Putts`][`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`]++;
+                    puttingMetrics.allPutts.gir[`num${currentPutts}Putts`][`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`]++;
                 } else {
                     puttingMetrics.allPutts.nonGir.byScore.total++;
-                    puttingMetrics.allPutts.nonGir[`num${putt.putts}Putts`].total++;
+                    puttingMetrics.allPutts.nonGir[`num${currentPutts}Putts`].total++;
                     // puttingMetrics.allPutts.nonGir.byScore[`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`].total++;
-                    puttingMetrics.allPutts.nonGir[`num${putt.putts}Putts`][`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`]++;
+                    puttingMetrics.allPutts.nonGir[`num${currentPutts}Putts`][`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`]++;
                 }
                 puttingMetrics.allPutts.totalByScore.total++;
-                puttingMetrics.allPutts.totalByScore[`num${putt.putts}Putts`].total++;
+                puttingMetrics.allPutts.totalByScore[`num${currentPutts}Putts`].total++;
                 puttingMetrics.totalPutts++;
                 puttingMetrics.allPutts.totalByScore.byScore[`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`]++;
-                puttingMetrics.allPutts.totalByScore[`num${putt.putts}Putts`][`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`]++;
+                puttingMetrics.allPutts.totalByScore[`num${currentPutts}Putts`][`score${putt.scoreToPar < 0 ? "Minus" : ""}${Math.abs(putt.scoreToPar)}`]++;
             }
         // } else {
         //     console.log("putt not counted",putt)
@@ -1093,7 +1094,7 @@ export const calculateSandMetrics = (courseInfo, displayedRounds) => {
             for (let hole = 1; hole <= 18; hole++) {
                 if (round[`hole${hole}`]) {
                     sandMetrics.totalHoleCount = sandMetrics.totalHoleCount + 1;
-                    const holePutts = round[`hole${hole}`].putts;
+                    const holePutts = round[`hole${hole}`].putts > 3 ? 3 : round[`hole${hole}`].putts;
                     if (round[`hole${hole}`].notes) {
                         const holeNotes = round[`hole${hole}`].notes
                         if (holeNotes && holeNotes.includes("S")) {
@@ -1150,13 +1151,12 @@ export const calculateBrMetrics = (courseInfo, displayedRounds) => {
             for (let hole = 1; hole <= 18; hole++) {
                 if (round[`hole${hole}`]) {
                     brMetrics.totalHoleCount = brMetrics.totalHoleCount + 1;
-                    const holePutts = round[`hole${hole}`].putts;
+                    const holePutts = round[`hole${hole}`].putts > 3 ? 3 : round[`hole${hole}`].putts;
                     if (round[`hole${hole}`].notes) {
                         const holeNotes = round[`hole${hole}`].notes
-                        // console.log("holeNotes",round.roundInfo.key, round.roundInfo.date, hole, holeNotes)
-
                         if (holeNotes && holeNotes.includes("BR")) {
                             brMetrics.brCount++;
+                            
                             const puttingIndex = brMetrics.putting.findIndex(putting => putting.numPutts == holePutts);
                             brMetrics.putting[puttingIndex].count = brMetrics.putting[puttingIndex].count + 1;
                             
@@ -1176,10 +1176,6 @@ export const calculateBrMetrics = (courseInfo, displayedRounds) => {
             }
         }
     }
-
-
-
-    console.log("brMetrics",brMetrics)
 
     return brMetrics;
 }

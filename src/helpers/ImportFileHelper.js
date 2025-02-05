@@ -266,7 +266,7 @@ export const importFile = (
                                 if (row[columnCount] && row[columnCount] !== "") {
                                     roundData.roundInfo.numHoles++;
 
-                                    let score = (roundData.nonGhinRounds.scrambleRound || (roundData.nonGhinRounds.leagueRound && typeof row[columnCount] === 'string'))? parseInt(row[columnCount].split(", ")[0]) : row[columnCount];
+                                    let score = (roundData.nonGhinRounds.scrambleRound || (roundData.nonGhinRounds.leagueRound && typeof row[columnCount] === 'string'))? parseInt(row[columnCount].split(", ")[0]) : parseInt(row[columnCount]);
                                     
                                     if (score === 1) roundData.scoring.underParRound = true;
                                     if (courseData[course.courseKey][`hole${hole}`].par >= score + 2) roundData.scoring.numEagles++; // Eagle
@@ -281,37 +281,41 @@ export const importFile = (
                                     // Debugging
                                     // console.log("typeof", parseInt(row[columnCount + 5].split(", ")[0]))
                                     // console.log("row[columnCount + 5]",row[columnCount + 5])
+//                                     console.log("roundData.key:", roundData.roundInfo.key, "\nhole:", hole, "\nvalue:", row[columnCount + 5])
 
-                                    if (!roundData.nonGhinRounds.legacyRound && typeof row[columnCount + 5] !== "number" && typeof parseInt(row[columnCount + 5].split(", ")[0]) !== "number") {
-                                        console.log(`INVALID FPM VALUE FOR ROUND ${roundData.key} HOLE ${hole}`, parseInt(row[columnCount + 5].split(", ")[0]),"")
-                                    }
+//                                     if (!roundData.nonGhinRounds.legacyRound && typeof parseInt(row[columnCount + 5]) !== "number" && typeof parseInt(row[columnCount + 5].split(", ")[0]) !== "number") {
+//                                         console.log(`INVALID FPM VALUE FOR ROUND ${roundData.roundInfo.key} HOLE ${hole}`, parseInt(row[columnCount + 5].split(", ")[0]),"")
+//                                     }
                                     
+// console.log("dtg typeof parseInt(row[columnCount + 4]) === number ? parseInt(row[columnCount + 4]) : parseInt(row[columnCount + 4].split()[0])", typeof parseInt(row[columnCount + 4]) === "number" ? parseInt(row[columnCount + 4]) : parseInt(row[columnCount + 4].split(", ")[0]))
+// console.log("dtg2 typeof parseInt(row[columnCount + 4]) === number ? parseInt(row[columnCount + 4]) : parseInt(row[columnCount + 4].split()[1]", typeof parseInt(row[columnCount + 4]) === "number" ? parseInt(row[columnCount + 4]) : parseInt(row[columnCount + 4].split(", ")[1]))
+// console.log("dth roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof parseInt(row[columnCount + 5]) === number ? parseInt(row[columnCount + 5]) : parseInt(row[columnCount + 5].split()[0])", roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof parseInt(row[columnCount + 5]) === "number" ? parseInt(row[columnCount + 5]) : parseInt(row[columnCount + 5].split(", ")[0]))
+// console.log("puttLength roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof parseInt(row[columnCount + 5]) === number ? parseInt(row[columnCount + 5]) : parseInt(row[columnCount + 5].split()[row[columnCount + 5].split().length - 1])", roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof parseInt(row[columnCount + 5]) === "number" ? parseInt(row[columnCount + 5]) : parseInt(row[columnCount + 5].split(", ")[row[columnCount + 5].split(", ").length - 1]))
+
+
+// evaluate if values include "," - not typeof === "number"
+                                    console.log("row[columnCount + 4]",row[columnCount + 4] )
+
                                     // Single hole data
                                     roundData[`hole${hole}`] = {
-                                        score: score,
-                                        putts: roundData.nonGhinRounds.legacyRound && !row[columnCount + 1] ? null : row[columnCount + 1],
+                                        score: parseInt(score),
+                                        putts: roundData.nonGhinRounds.legacyRound && !row[columnCount + 1] ? null : parseInt(row[columnCount + 1]),
                                         fir: roundData.nonGhinRounds.legacyRound && !row[columnCount + 2] ? null : row[columnCount + 2],
                                         gir: roundData.nonGhinRounds.legacyRound && !row[columnCount + 3] ? null : row[columnCount + 3],
-                                        // dtg: roundData.nonGhinRounds.legacyRound && !row[columnCount + 4] ? null : row[columnCount + 4],
-                                        // dtg: typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[1]), // Uses number closest to green
-
-                                        // Could begin trying to make use of DTG here
-                                        dtg: typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[0]),
-                                        dtg2: typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[1]),// For use on Par 5's only
-
-                                        dth: roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[0]),
-                                        // dth: row[columnCount + 5],
-                                        puttLength: roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[row[columnCount + 5].split(", ").length - 1]),
+                                        dtg: typeof row[columnCount + 4] === "number" || (typeof row[columnCount + 4] !== "number" && !row[columnCount + 4].includes(",")) ? parseInt(row[columnCount + 4]) : parseInt(row[columnCount + 4].split(", ")[0]),
+                                        dtg2: typeof row[columnCount + 4] === "number" || (typeof row[columnCount + 4] !== "number" && !row[columnCount + 4].includes(",")) ? parseInt(row[columnCount + 4]) : parseInt(row[columnCount + 4].split(", ")[1]),// For use on Par 5's only
+                                        dth: roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof row[columnCount + 5] === "number" || (typeof row[columnCount + 5] !== "number" && !row[columnCount + 5].includes(",")) ? parseInt(row[columnCount + 5]) : parseInt(row[columnCount + 5].split(", ")[0]),
+                                        puttLength: roundData.nonGhinRounds.legacyRound && !row[columnCount + 5] ? null : typeof row[columnCount + 5] === "number" || (typeof row[columnCount + 5] !== "number" && !row[columnCount + 5].includes(",")) ? parseInt(row[columnCount + 5]) : parseInt(row[columnCount + 5].split(", ")[row[columnCount + 5].split(", ").length - 1]),
                                         notes: roundData.nonGhinRounds.legacyRound && !row[columnCount + 6] ? null : row[columnCount + 6] ? row[columnCount + 6] : ""
                                     }
 
-                                    if ((roundData.sequence > 8 || row[columnCount + 1] === 0 || row[columnCount + 1] === 1) && !roundData.nonGhinRounds.scrambleRound && !roundData.nonGhinRounds.leagueRound && !(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1])) {
+                                    if ((roundData.sequence > 8 || parseInt(row[columnCount + 1]) === 0 || parseInt(row[columnCount + 1]) === 1) && !roundData.nonGhinRounds.scrambleRound && !roundData.nonGhinRounds.leagueRound && !(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1])) {
                                         allPutts.push({
                                             round: `${course.courseKey}${rowNumber - 1}`,
                                             date: row[1].split("\n")[0],
                                             putts: row[columnCount + 1],
-                                            dth: typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[0]),
-                                            fpm: typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[1]),
+                                            dth: roundData[`hole${hole}`].dth,
+                                            fpm: roundData[`hole${hole}`].puttLength,
                                             gir: roundData[`hole${hole}`].gir,
                                             scoreToPar: score - courseData[course.courseKey][`hole${hole}`].par
                                         });
@@ -333,18 +337,9 @@ export const importFile = (
                                         }
                                     }
 
-                                    // F9/B9 data
-                                    // if (hole < 10) {
-                                    //     roundData.approach.dtgF9Total = roundData.approach.dtgF9Total + (typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[1]));
-                                    //     roundData.approach.dtgTotal = roundData.approach.dtgTotal + (typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[1]));
-                                    // } else {
-                                    //     roundData.approach.dtgB9Total = roundData.approach.dtgB9Total + (typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[1]));
-                                    //     roundData.approach.dtgTotal = roundData.approach.dtgTotal + (typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[1]));
-                                    // }
-
-                                    const holeDtg = typeof row[columnCount + 4] === "number" ? row[columnCount + 4] : parseInt(row[columnCount + 4].split(", ")[0]);
-                                    const holeDtg2 = courseData[course.courseKey][`hole${hole}`].par == 5 ? typeof row[columnCount + 4] === "number" ? 0 : parseInt(row[columnCount + 4].split(", ")[1]) : 0;
                                     const roundDataHole = roundData[`hole${hole}`];
+                                    const holeDtg = roundDataHole.dtg;
+                                    const holeDtg2 = courseData[course.courseKey][`hole${hole}`].par == 5 ? roundDataHole.dtg2 : 0;
 
                                     // F9/B9 data
                                     if (hole < 10) {
@@ -360,7 +355,7 @@ export const importFile = (
                                             roundData.approach.dtgF9 = parseInt(roundData.approach.dtgF9) + holeDtg;
                                         }
                                         roundData.scoring.out = roundData.scoring.out + score;
-                                        roundData.putting.f9Putts = roundData.putting.f9Putts + row[columnCount + 1];
+                                        roundData.putting.f9Putts = roundData.putting.f9Putts + parseInt(row[columnCount + 1]);
                                         if (!(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1]) && row[columnCount + 1] > 2) roundData.putting.num3PuttsF9 = roundData.putting.num3PuttsF9 + 1;
 
                                         // DTG, FPM, DTH totals for averages (DTG uses number closest to green)
@@ -381,8 +376,8 @@ export const importFile = (
                                             roundData.approach.dtgB9 = parseInt(roundData.approach.dtgB9) + holeDtg;
                                         }
                                         roundData.scoring.in = roundData.scoring.in + score;
-                                        roundData.putting.b9Putts = roundData.putting.b9Putts + row[columnCount + 1];
-                                        if (!(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1]) && row[columnCount + 1] > 2) roundData.putting.num3PuttsB9 = roundData.putting.num3PuttsB9 + 1;
+                                        roundData.putting.b9Putts = roundData.putting.b9Putts + parseInt(row[columnCount + 1]);
+                                        if (!(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1]) && parseInt(row[columnCount + 1]) > 2) roundData.putting.num3PuttsB9 = roundData.putting.num3PuttsB9 + 1;
 
                                         // DTG, FPM, DTH totals for averages (DTG uses number closest to green)
                                         roundData.putting.fpmB9Total = roundData.putting.fpmB9Total + (typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[row[columnCount + 5].split(", ").length - 1]));
@@ -391,15 +386,15 @@ export const importFile = (
                                         roundData.putting.dthTotal = roundData.putting.dthTotal + (typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[0]));
                                     }
                                     roundData.scoring.total = roundData.scoring.total + score;
-                                    roundData.putting.putts = roundData.putting.putts + row[columnCount + 1];
-                                    if (!(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1]) && row[columnCount + 1] > 2) roundData.putting.num3Putts = roundData.putting.num3Putts + 1;
+                                    roundData.putting.putts = roundData.putting.putts + parseInt(row[columnCount + 1]);
+                                    if (!(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1]) && parseInt(row[columnCount + 1]) > 2) roundData.putting.num3Putts = roundData.putting.num3Putts + 1;
 
                                     // CTP for Par 3's (first 8 rounds)
                                     const isPar3 = courseData[course.courseKey][`hole${hole}`].par === 3;
                                     if (
                                         isPar3 &&
                                         (row[columnCount + 3] === 'G' || row[columnCount + 3] === 'G-1') &&
-                                        (roundData.sequence >= 9 || row[columnCount + 1] === 0 || row[columnCount + 1] === 1) // Started capturing DTH on 9th round of year, can still contribute if 0 or 1 putted
+                                        (roundData.sequence >= 9 || parseInt(row[columnCount + 1]) === 0 || parseInt(row[columnCount + 1]) === 1) // Started capturing DTH on 9th round of year, can still contribute if 0 or 1 putted
                                     ) {
                                         roundData[`hole${hole}`].dth = typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[0]);
                                     }
@@ -454,8 +449,8 @@ export const importFile = (
                                             courseKey: course.courseKey,
                                             scoreCardHoleAbbreviation: courses.filter(course => course.displayName === row[columnCount]).scoreCardHoleAbbreviation,
                                             hole: row[columnCount + 1],
-                                            score: row[columnCount + 2],
-                                            putts: row[columnCount + 3],
+                                            score: parseInt(row[columnCount + 2]),
+                                            putts: parseInt(row[columnCount + 3]),
                                             fir: row[columnCount + 4],
                                             gir: row[columnCount + 5],
                                             dtg: row[columnCount + 6],
@@ -506,6 +501,8 @@ export const importFile = (
                         }
                     });
                 }
+
+                console.log("allRounds",allRounds)
 
                 // Sort rounds by descending date
                 allRounds.sort(function(a, b){

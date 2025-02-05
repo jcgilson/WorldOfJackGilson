@@ -1,19 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 // Pages
-// import Golf from './pages/Golf';
+import Golf from './pages/Golf';
 import Pool from './pages/Pool'
 // Styles
 import './App.css';
 import "./global.css"
 
 function App() {
+  const [flow, setFlow] = useState("Pool");
+
   return (
     <div className="body color026647">
-      {/* <article>
-        <section className="background026647 zIndexNegative" />
-      </article> */}
-      {/* <Golf/> */}
-      <Pool/>
+      {/* <div className="textDecoration" style={{ position: "absolute", bottom: "0", right: "calc(50% - 200px"}} onClick={() => setFlow(flow === "Pool" ? "Golf" : "Pool")}>
+        Created by Jack Gilson
+      </div> */}
+      {flow === "Golf" && <Golf/>}
+      {flow === "Pool" && <Pool/>}
     </div>
   );
 }

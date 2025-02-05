@@ -38,6 +38,12 @@
     color: #FFFFFFAA !important;
 }
 
+.pool .fontSizeOverride b,
+.pool .fontSizeOverride span,
+.pool .fontSizeOverride p {
+    font-size: 18px !important
+}
+
 /* Expanded Lineup Accordion Summary */
 .pool .Mui-expanded.MuiAccordionSummary-gutters {
     min-height: 24px;
@@ -56,6 +62,11 @@
 .strikethroughFont {
     color: #FFFFFF77 !important;
     text-decoration: line-through;
+}
+
+/* MUI alert */
+div.MuiAlert-message, .MuiPaper-root div.MuiAlert-message h3 {
+    color: black !important;
 }
 
 /* Snackbar */

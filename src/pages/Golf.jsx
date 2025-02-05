@@ -57,12 +57,12 @@ const Golf = () => {
 
 
     //  Configurable state
-    const [activePage, setActivePage] = useState('Golf Rounds');
-    const [yearFilter, setYearFilter] = useState(2024); // Can set default year here
+    const [activePage, setActivePage] = useState("Golf Rounds");
+    const [yearFilter, setYearFilter] = useState(2025); // Can set default year here
 
     // Internal state
     const [displayUploadButton, setDisplayUploadButton] = useState(true);
-    const [filters, setFilters] = useState(["2024"]);
+    const [filters, setFilters] = useState(["2025"]);
     const [courseTours, setCourseTours] = useState(["South Suburban"]); // "Course Tour" tab shows "hole course by default"
     const [isLoading, setIsLoading] = useState(false);
     const [allRounds, setAllRounds] = useState([]);
@@ -107,52 +107,6 @@ const Golf = () => {
 
     const pinnedCourse = "South Suburban"; // Course pinned atop scorecard entry
     const includePartialRounds = true; // Displays partial rounds
-
-    // Get golf data from rapidapi
-    // Scoreboard: https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_a6e32f80-75c7-4c35-ab1b-bbd685ee82f3
-    // Leaderboard: https://rapidapi.com/slashgolf/api/live-golf-data/playground/apiendpoint_7f2f7f19-0407-4724-a1e5-abffc7c4a299
-    // const [golfLeaderBoardData, setGolfLeaderBoardData] = useState({});
-    // const getGolfData = async () => {
-    //     const golfers = [
-    //         {fName: "Scottie", lName: "Scheffler"}
-    //     ];
-    //     const options = {
-    //         method: 'GET',
-    //         url: 'https://live-golf-data.p.rapidapi.com/leaderboard',
-    //         params: {
-    //             orgId: '1',
-    //             tournId: '475',
-    //             year: '2024'
-    //         },
-    //         headers: {
-    //             'x-rapidapi-key': '0598eb6b02msh5b4a6094ffc4e05p1c4f7djsnb241d4f5f1fe',
-    //             'x-rapidapi-host': 'live-golf-data.p.rapidapi.com'
-    //         }
-    //     };
-    //     const response = await axios.request(options);
-    //     return response;
-    // }
-    // /**
-    //  * HOOK: useEffect fetches golf leaderboard data
-    //  * 
-    //  * 
-    //  */
-    // useEffect(() => {
-    //     try {
-    //         const response = getGolfData();
-    //         console.log(response);
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // }, [])
-    // /**
-    //  * HOOK: useEffect stores leaderboard data to mongo to be fetch
-    //  * 
-    //  * 
-    //  */
-    // useEffect(() => {
-    //     // store to mongo
-    // }, [golfLeaderBoardData])
 
     /**
      * HOOK: useEffect sets filter method when round data is fetched or a new round is added
@@ -472,20 +426,20 @@ const Golf = () => {
     // All useEffects used for Excel upload only (separated for courseinfos and golfrounds collections)
 
     // Add row to golfrounds collection
-    const addRound = (round) => {
-        console.log("inserting round", round)
-        axios.post('https://worldofjack-server.onrender.com/add-round', round)
-        .then((response) => {
-            setDisplayScorecardSubmissionSnackbar("success")
-            // console.log("Response:", response)
-        })
-        .catch((error) => {
-            setDisplayScorecardSubmissionSnackbar("error")
-            console.error('Error adding golf round', error)
-        })
-    };
+    // const addRound = (round) => {
+    //     console.log("inserting round", round)
+    //     axios.post('https://worldofjack-server.onrender.com/add-round', round)
+    //     .then((response) => {
+    //         setDisplayScorecardSubmissionSnackbar("success")
+    //         // console.log("Response:", response)
+    //     })
+    //     .catch((error) => {
+    //         setDisplayScorecardSubmissionSnackbar("error")
+    //         console.error('Error adding golf round', error)
+    //     })
+    // };
 
-    // // Function to add golf rounds to Mongo - allow excel upload to update allRounds state
+    // Function to add golf rounds to Mongo - allow excel upload to update allRounds state
     // useEffect(() => {
     //     for (let round of allRounds) addRound(round)
     // }, [allRounds]);
@@ -939,22 +893,6 @@ const Golf = () => {
         )
     }
 
-    {/*
-        COMPONENT: Page Links
-
-        Displays all pages atop page
-
-        props:
-            activePage      (string)    Current page
-            setActivePage   (function)  Handles navigation change
-    */}
-    {!displayUploadButton &&
-        <PageLinks
-            activePage={activePage}
-            setActivePage={setActivePage}
-        />
-    }
-
     // is this removing values from tempScorecardEntryData and doing nothing with it?
         // appears to be removing holes appropriately... not sure how
     const removeUnusedActiveScorecardEntryData = () => {
@@ -1008,21 +946,20 @@ const Golf = () => {
 			{/* <h1 className="serifFont marginBottomMedium">Golf</h1> */}
 			{/* <h1 className="serifFont marginBottomMedium marginTopMedium">Golf</h1> */}
 
+            {/*
+                COMPONENT: Page Links
+
+                Displays all pages atop page
+
+                props:
+                    activePage      (string)    Current page
+                    setActivePage   (function)  Handles navigation change
+            */}
             {!displayUploadButton &&
-                <div className="pageLinks marginTopMedium">
-                    {[
-                        "Golf Rounds",
-                        // "Anderson Glen",
-                        // "Gilead Highlands",
-                        "Metrics",
-                        "Course Tour",
-                        "Historic Rounds",
-                        "Historic Metrics",
-                        "Enter Scorecard"
-                    ].map((page, i) => {
-                        return <a key={i} onClick={() => setActivePage(page)} className={`marginRightExtraLarge pageLinkFont${page === activePage ? " active" : ""}`}>{page}</a>
-                    })}
-                </div>
+                <PageLinks
+                    activePage={activePage}
+                    setActivePage={setActivePage}
+                />
             }
 
             {displayLegacyFilterWarning &&
