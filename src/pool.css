@@ -38,12 +38,6 @@
     color: #FFFFFFAA !important;
 }
 
-.pool .fontSizeOverride b,
-.pool .fontSizeOverride span,
-.pool .fontSizeOverride p {
-    font-size: 18px !important
-}
-
 /* Expanded Lineup Accordion Summary */
 .pool .Mui-expanded.MuiAccordionSummary-gutters {
     min-height: 24px;

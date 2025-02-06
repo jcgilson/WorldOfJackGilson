@@ -10,11 +10,20 @@
     .pool h1 {
         font-size: 28px !important;
     }
+    .pool button {
+        font-size: 24px !important;
+        height: 48px;
+    }
     .pool h3, .pool b, .pool td, .pool span, .pool p,
     /* Schedule dropdown */
     .scheduleDropdownItem span, .scheduleDropdownItem b {
         font-size: 24px !important;
         /* color: red !important; */
+    }
+    .pool .fontSizeOverride b,
+    .pool .fontSizeOverride span,
+    .pool .fontSizeOverride p {
+        font-size: 18px !important
     }
 }
 

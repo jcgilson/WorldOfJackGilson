@@ -1660,9 +1660,9 @@ const Pool = () => {
                                     </Alert>
                                 }
                                 {/* Entry form fields */}
-                                <TextField value={poolForm.name || null} style={{ maxWidth: "420px" }} id="fullName" label="Full Name" variant="outlined" onChange={(e) => handleFormChange("name", e.target.value)} />
-                                <TextField value={poolForm.phone || null} style={{ maxWidth: "420px" }} id="fullName" label="Phone" variant="outlined" onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
-                                <TextField value={poolForm.email || null} style={{ maxWidth: "420px" }} id="fullName" label="Email" variant="outlined" onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
+                                <TextField value={poolForm.name || null} style={{ maxWidth: "420px" }} id="fullName" label="Full Name" variant="filled" onChange={(e) => handleFormChange("name", e.target.value)} />
+                                <TextField value={poolForm.phone || null} style={{ maxWidth: "420px" }} id="phone" label="Phone" variant="filled" onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
+                                <TextField value={poolForm.email || null} style={{ maxWidth: "420px" }} id="email" label="Email" variant="filled" onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
                                 {/* <div className="formCheckbox marginTopMedium marginBottomMedium">
                                     <FormControlLabel control={<Checkbox onChange={() => handleFormChange("checkbox", poolForm.checkbox ? !poolForm.checkbox : true)} />} label={<div className="whiteFont">*I have paid via Venmo <b>@jcgilson</b> or Apple Pay <b>(317) 213-8188</b></div>} />
                                 </div> */}
@@ -1672,9 +1672,7 @@ const Pool = () => {
                                         <Button
                                             variant="outlined"
                                             color="white"
-                                            className="whiteButton marginTopLarge marginRightMedium"
-                                            style={{ width: "96px" }}
-                                            // disabled={}
+                                            className="whiteButton marginTopLarge marginRightMedium paddingLeftLarge paddingRightLarge"
                                             onClick={() => handleEditEntryClick()}
                                         >
                                             Edit Entry
@@ -1684,8 +1682,7 @@ const Pool = () => {
                                         <Button
                                             variant="outlined"
                                             color="white"
-                                            className="whiteButton marginTopLarge"
-                                            style={{ width: "84px" }}
+                                            className="whiteButton marginTopLarge paddingLeftLarge paddingRightLarge"
                                             disabled={(illustrativePlayers.length !== 6) || !poolForm.checkbox || (illustrativeSalaryCap > 100) || (displayPoolFormError && Object.keys(poolForm.errors).length > 0)}
                                             onClick={() => handleUpdateAndSubmitPoolEntry(hasReceivedEditingPoolEntry)}
                                         >
