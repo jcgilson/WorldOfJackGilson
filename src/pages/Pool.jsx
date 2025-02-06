@@ -218,7 +218,7 @@ const Pool = () => {
     const [displayEntrySubmittedMessage, setDisplayEntrySubmittedMessage] = useState(false) // Boolean - controls message displayed after pool entry is submitted
     const [displayPoolFormError, setDisplayPoolFormError] = useState(false); // Boolean - controls when pool form errors should be displayed (after submit attempt)
     const [illustrativePlayers, setIllustrativePlayers] = useState([]); // Array - list of illustrative players (not final)
-    const [illustrativePlayerSearchQuery, setIllustrativePlayerSearchQuery] = useState("") // String - illustrative player search query
+    const [illustrativePlayerSearchQuery, setIllustrativePlayerSearchQuery] = useState(null) // String - illustrative player search query
     const [filteredIllustrativePlayers, setFilteredIllustrativePlayers] = useState([]); // Array - list of players that fulfill illustrative player search query
     const [illustrativeSalaryCap, setIllustrativeSalaryCap] = useState(0); // Number - salary cap used with all illustrative players
     const [isEditingPoolEntry, setIsEditingPoolEntry] = useState(false); // Boolean - controls when user is editing existing pool entry
@@ -1324,11 +1324,19 @@ const Pool = () => {
     }
 
     const handleFocus = (valueUpdated, value) => {
-        if (valueUpdated.toLowerCase() === value.toLowerCase()) handleFormChange(valueUpdated.toLowerCase(), "");
+        if (valueUpdated === "illustrativePlayerSearchQuery") {
+            if (value === "Search Players") setIllustrativePlayerSearchQuery(" ");
+        } else {
+            if (valueUpdated.toLowerCase() === value.toLowerCase()) handleFormChange(valueUpdated.toLowerCase(), "");
+        }
     }
 
     const handleBlur = (valueUpdated, value) => {
-        if (value === "") handleFormChange(valueUpdated, valueUpdated.replace(/\w\S*/g, text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()));
+        if (valueUpdated === "illustrativePlayerSearchQuery") {
+            if (!value || value === "") setIllustrativePlayerSearchQuery("Search Players");
+        } else {
+            if (value === "") handleFormChange(valueUpdated, valueUpdated.replace(/\w\S*/g, text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()));
+        }
     }
 
     const handleUpdateAndSubmitPoolEntry = (isUpdatingExistingEntry) => {
@@ -1537,7 +1545,8 @@ const Pool = () => {
     };
 
     const handleSearchIllustrativePlayers = (query) => {
-        const queryWithoutSpaces = query.replace(/ /g, "");
+        let queryWithoutSpaces = query.replace(/ /g, "");
+        if (queryWithoutSpaces === "Search Players") queryWithoutSpaces = "";
         const queryWithoutSpacesLowerCase = queryWithoutSpaces.toLowerCase();
         let tempFilteredIllustrativePlayers = [];
 
@@ -1716,14 +1725,17 @@ const Pool = () => {
                             <div className="width100Percent flexFlowRowWrap justifySpaceBetween alignCenter" style={{ margin: "16px auto" }}>
                                 {/* Player search */}
                                 <TextField
-                                    id="outlined-basic"
-                                    label="Search Players"
-                                    variant="outlined"
-                                    value={illustrativePlayerSearchQuery}
+                                    id="searchPlayers"
+                                    hiddenLabel
+                                    // label={illustrativePlayerSearchQuery === "" ? "Search Players" : null}
+                                    variant="filled"
+                                    value={illustrativePlayerSearchQuery || "Search Players"}
                                     onChange={(e) => handleSearchIllustrativePlayers(e.target.value)}
+                                    onFocus={(e) => handleFocus("illustrativePlayerSearchQuery", e.target.value)}
+                                    onBlur={(e) => handleBlur("illustrativePlayerSearchQuery", e.target.value)}
                                     slotProps={{
                                         input: {
-                                            endAdornment: illustrativePlayerSearchQuery === ""
+                                            endAdornment: !illustrativePlayerSearchQuery
                                                 ? null
                                                 : <InputAdornment
                                                         position="end"
