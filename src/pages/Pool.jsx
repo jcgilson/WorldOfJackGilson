@@ -239,11 +239,13 @@ const Pool = () => {
     useEffect(() => {
         if (!hasStartedFetch){
             // Set current date
-            const date = new Date();
+            let date = new Date();
             const tempDate = hardCodeDate ? hardCodeDate : moment(date).utcOffset('-0700').format('MM/DD/YY');
             const fullYear = date.getFullYear();
             setCurrentDate(tempDate);
             setCurrentYear(fullYear);
+
+            date = new Date(date.setHours(0,0,0,0))
 
             // START HARDCODED BLOCK
             
@@ -277,7 +279,6 @@ const Pool = () => {
                     const currentTournament = schedule.schedule[i];
                     const start = new Date(currentTournament.startDate);
                     const end = new Date(currentTournament.endDate);
-                    currentTournamentDay = 1;
                     // Date matches start or end date
                     if ((date - start == 0) || (date - end == 0) || (i == schedule.schedule.length - 1)) {
                         if (date - start == 0) currentTournamentDay = 1;
@@ -747,8 +748,8 @@ const Pool = () => {
                         // Conditions for pulling an updated leaderboard below, otherwise set fetched leaderboard
                         if (
                             (
-                                // It's been at least 20 minutes since last fetch
-                                ((timestamp - response.data.timestamp) > 1200000)
+                                // It's been at least 15 minutes since last fetch
+                                ((timestamp - response.data.timestamp) > 900000)
                                 // It's a tournament day
                                 && isReadyToGetUpdatedLeaderboardInfo
                                 // Round is not in "Official" (completed) status
@@ -760,7 +761,7 @@ const Pool = () => {
 
 
                         ) {
-                            console.log("Leaderboard last fetched greater than 30 minutes ago, about to fetch new leaderboard");
+                            console.log("Leaderboard last fetched greater than 15 minutes ago, about to fetch new leaderboard");
                             retrieveLeaderboardDataRapid(currentYear, tournamentId);
                             setIsLeaderboardLoading(false);
                         } else {
@@ -1873,7 +1874,7 @@ const Pool = () => {
                     <div className={screenWidth > 1480 ? "flexFlowRowWrap leaderboardsContainer" : "flexColumn leaderboardsContainer"}>
                         {leaderboard && poolLeaderboard &&
                             <div id="poolLeaderboard" style={{ width: screenWidth < 1000 ? "95%" : "640px", marginLeft: screenWidth < 1000 ? "2.5%" : "0", marginRight: screenWidth > 1480 ? "64px" : "0" }}>
-                                <div className="flexRow justifySpaceBetween alignCenter paddingLeftExtraSmall paddingRightExtraSmall">
+                                <div className="flexRow justifySpaceBetween alignCenter paddingLeftExtraSmall paddingRightExtraSmall marginBottomMedium">
                                     <h1 className="whiteFont marginTopMedium marginBottomMedium">Pool</h1>
                                     {screenWidth < 1480 && <b className="textDecoration whiteFont floatRight" onClick={() => handleScrollTo('leaderboard')}>Jump to Leaderboard</b>}
                                 </div>
@@ -1932,7 +1933,7 @@ const Pool = () => {
                         {/* Leaderboard */}
                         {leaderboard && leaderboard.leaderboard &&
                             <div id="leaderboard" style={{ width: screenWidth < 1000 ? "95%" : "640px", marginLeft: screenWidth < 1000 ? "2.5%" : "0", marginTop: screenWidth > 1480 ? "0" : "24px" }}>
-                                <div className="flexRow justifySpaceBetween alignCenter">
+                                <div className="flexRow justifySpaceBetween alignCenter marginBottomMedium">
                                     <h1 className="whiteFont marginTopMedium marginBottomMedium">Leaderboard</h1>
                                     {screenWidth < 1480 && <b className="textDecoration whiteFont" onClick={() => handleScrollTo('poolLeaderboard')}>Jump to Pool</b>}
                                 </div>
