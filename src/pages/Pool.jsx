@@ -277,7 +277,7 @@ const Pool = () => {
                     const currentTournament = schedule.schedule[i];
                     const start = new Date(currentTournament.startDate);
                     const end = new Date(currentTournament.endDate);
-                    
+                    currentTournamentDay = 1;
                     // Date matches start or end date
                     if ((date - start == 0) || (date - end == 0) || (i == schedule.schedule.length - 1)) {
                         if (date - start == 0) currentTournamentDay = 1;
