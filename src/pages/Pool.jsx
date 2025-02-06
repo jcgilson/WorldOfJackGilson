@@ -1791,7 +1791,7 @@ const Pool = () => {
 
                             {/* Illustrative player selection */}
                             <FormGroup>
-                                <ul style={{ marginTop: "16px", paddingLeft: "0", columnCount: getColumnCount(), columnGap: "8px", minHeight: "48px" }}>
+                                <ul style={{ marginTop: "16px", paddingLeft: "0", columnCount: getColumnCount(), columnGap: "8px", minHeight: "96px" }}>
                                     {filteredIllustrativePlayers.map(player => {
                                         return (
                                             <li style={{ minHeight: "33px" }} key={player.playerId} className={`flexRow alignCenter playerOption${!(illustrativePlayers.map(currentPlayer => currentPlayer.playerId)).includes(player.playerId) && illustrativePlayers.length == 6 ? " disabled" : ""}${screenWidth < 1000 ? " fontSizeOverride" : ""}`} >
@@ -1804,7 +1804,7 @@ const Pool = () => {
                                                         <Checkbox onClick={() => handleSetIllustrativePlayers(player)}/>
                                                     }
                                                     label={
-                                                        <p className="whiteFont" style={{ maxWidth: "234px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                                        <p className="whiteFont" style={{ maxWidth: "224px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                                             <span className="marginRightExtraSmall">$</span>
                                                             <b className="whiteFont" style={{ display: "inline-block", width: "44px" }}>{player.salary} </b>
                                                             {player.isAmateur ? "(a) " : ""}{player.lastName}, {player.firstName}
