@@ -338,7 +338,7 @@ const Pool = () => {
                 setHighlightedTournamentId(tempActiveTournamentId);
                 // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
                 fetchMongoPlayers(fullYear, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
-                fetchMongoLeaderboard(fullYear, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
+                if (currentTournamentDay) fetchMongoLeaderboard(fullYear, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
                 fetchMongoPoolEntries(fullYear, tempActiveTournamentId);
                 if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
             }
@@ -904,7 +904,7 @@ const Pool = () => {
             setAllPlayers(tempAllPlayersObj);
             savePlayers(tempAllPlayersObj);
         } else {
-            setSnackbarMessages([...snackbarMessages, "Player information for this tournament is not available yet."]);
+            // setSnackbarMessages([...snackbarMessages, "Player information for this tournament is not available yet."]);
             setAllPlayers(null);
         }
     }
