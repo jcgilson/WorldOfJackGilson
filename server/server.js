@@ -316,7 +316,6 @@ app.get('/get-dfs', async (req, res) => {
 app.get('/get-poolEntryBeingEdited', async (req, res) => {
   try {
     let poolEntry = await PoolsCollection.find(req.query);
-    console.log("poolEntry",poolEntry)
     delete poolEntry.entryData.email;
     delete poolEntry.entryData.phone;
     if (!poolEntry) return res.status(404).send(`Pool entry not found`);

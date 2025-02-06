@@ -657,31 +657,31 @@ const Pool = () => {
             });
     }
 
-        // Update pool form entry
-        const updatePoolFormEntry = (obj) => {
-            setIsPoolFormEntryLoading(true);
-            axios.put('https://worldofjack-server.onrender.com/edit-poolEntry', obj)
-                .then((response) => {
-                    setSnackbarMessages([...snackbarMessages, "Pool entry saved"]);
-                    setIsPoolFormEntryLoading(false);
-                    setPoolForm({
-                        errors: {},
-                        checkbox: true,
-                        name: poolForm.name,
-                        phone: poolForm.phone,
-                        email: poolForm.email,
-                        suggestions: poolForm.suggestions 
-                    });
-                    setDisplayEntrySubmittedMessage(true);
-                    setIsEditingPoolEntry(false);
-                    setHasReceivedEditingPoolEntry(false);
-                })
-                .catch((error) => {
-                    setSnackbarMessages([...snackbarMessages, "Error saving pool entry"]);
-                    console.error('Error saving pool entry form:', error);
-                    setIsPoolFormEntryLoading(false);
+    // Update pool form entry
+    const updatePoolFormEntry = (obj) => {
+        setIsPoolFormEntryLoading(true);
+        axios.put('https://worldofjack-server.onrender.com/edit-poolEntry', obj)
+            .then((response) => {
+                setSnackbarMessages([...snackbarMessages, "Pool entry saved"]);
+                setIsPoolFormEntryLoading(false);
+                setPoolForm({
+                    errors: {},
+                    checkbox: true,
+                    name: poolForm.name,
+                    phone: poolForm.phone,
+                    email: poolForm.email,
+                    suggestions: poolForm.suggestions 
                 });
-        }
+                setDisplayEntrySubmittedMessage(true);
+                setIsEditingPoolEntry(false);
+                setHasReceivedEditingPoolEntry(false);
+            })
+            .catch((error) => {
+                setSnackbarMessages([...snackbarMessages, "Error saving pool entry"]);
+                console.error('Error saving pool entry form:', error);
+                setIsPoolFormEntryLoading(false);
+            });
+    }
 
 
     // END MONGO SAVES
@@ -1323,6 +1323,14 @@ const Pool = () => {
         });
     }
 
+    const handleFocus = (valueUpdated, value) => {
+        if (valueUpdated.toLowerCase() === value.toLowerCase()) handleFormChange(valueUpdated.toLowerCase(), "");
+    }
+
+    const handleBlur = (valueUpdated, value) => {
+        if (value === "") handleFormChange(valueUpdated, valueUpdated.replace(/\w\S*/g, text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()));
+    }
+
     const handleUpdateAndSubmitPoolEntry = (isUpdatingExistingEntry) => {
         if (Object.keys(poolForm.errors).length > 0) {
             setDisplayPoolFormError(true);
@@ -1628,7 +1636,7 @@ const Pool = () => {
                     {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) &&
                         <div style={{ width: screenWidth < 1000 ? "100%" : "85%" }}>
                             {/* Pool entry form */}
-                            <div className="flexColumn" style={{ width: "420px", margin: "16px auto" }}>
+                            <div className="flexColumn" style={{ width: screenWidth < 1000 ? "100%" : "420px", margin: "16px auto" }}>
                                 {/* Submitted message */}
                                 {displayEntrySubmittedMessage && 
                                     <Alert severity="success" style={{ marginTop: "16px", marginBottom: "16px", width: "390px" }}>
@@ -1638,7 +1646,7 @@ const Pool = () => {
                                 }
                                 {/* Errors */}
                                 {Object.keys(poolForm.errors).length > 0 && displayPoolFormError && 
-                                    <Alert severity="warning" style={{ marginTop: "16px", marginBottom: "16px", width: "420px" }}>
+                                    <Alert severity="warning" style={{ marginTop: "16px", marginBottom: "16px", width: "380px" }}>
                                         <h3>Fix the following errors before submitting:</h3>
                                         <ul className="noMargin">
                                             {Object.keys(poolForm.errors).map(error => {
@@ -1655,19 +1663,29 @@ const Pool = () => {
                                     </Alert>
                                 }
                                 {displayEditingPoolEntryNotFound &&
-                                    <Alert severity="info" style={{ marginTop: "16px", marginBottom: "16px", width: "420px" }}>
-                                        <h3>Existing entry could not be found. Email <a className="blackFont textDecoration" href= "mailto:GilsonGolfPools@gmail.com">GilsonGolfPools@gmail.com</a> for additional help.</h3>
+                                    <Alert severity="info" style={{ marginTop: "16px", marginBottom: "16px", width: screenWidth < 1000 ? "100%" : "390px" }}>
+                                        <h3>Entry not found. Email <a className="blackFont textDecoration" href= "mailto:GilsonGolfPools@gmail.com">GilsonGolfPools@gmail.com</a> for help.</h3>
                                     </Alert>
                                 }
                                 {/* Entry form fields */}
-                                <TextField value={poolForm.name || null} style={{ maxWidth: "420px" }} id="fullName" label="Full Name" variant="filled" onChange={(e) => handleFormChange("name", e.target.value)} />
-                                <TextField value={poolForm.phone || null} style={{ maxWidth: "420px" }} id="phone" label="Phone" variant="filled" onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
-                                <TextField value={poolForm.email || null} style={{ maxWidth: "420px" }} id="email" label="Email" variant="filled" onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
+                                {screenWidth > 1000 ?
+                                    <>
+                                        <TextField value={poolForm.name || null} style={{ maxWidth: "420px" }} id="fullName" label="Name" variant="filled" onChange={(e) => handleFormChange("name", e.target.value)} />
+                                        <TextField value={poolForm.phone || null} style={{ maxWidth: "420px" }} id="phone" label="Phone" variant="filled" onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
+                                        <TextField value={poolForm.email || null} style={{ maxWidth: "420px" }} id="email" label="Email" variant="filled" onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
+                                    </>
+                                    :
+                                    <>
+                                        <TextField fullWidth hiddenLabel value={poolForm.name === "" ? "" : poolForm.name || "Name"} id="fullName" variant="filled" onFocus={(e) => handleFocus("name", e.target.value)} onBlur={(e) => handleBlur("name", e.target.value)} onChange={(e) => handleFormChange("name", e.target.value)} />
+                                        <TextField fullWidth hiddenLabel value={poolForm.phone === "" ? "" : poolForm.phone || "Phone"} id="phone" variant="filled" onFocus={(e) => handleFocus("phone", e.target.value)} onBlur={(e) => handleBlur("phone", e.target.value)} onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
+                                        <TextField fullWidth hiddenLabel value={poolForm.email === "" ? "" : poolForm.email || "Email"} id="email" variant="filled" onFocus={(e) => handleFocus("email", e.target.value)} onBlur={(e) => handleBlur("email", e.target.value)} onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
+                                    </>    
+                                }
                                 {/* <div className="formCheckbox marginTopMedium marginBottomMedium">
                                     <FormControlLabel control={<Checkbox onChange={() => handleFormChange("checkbox", poolForm.checkbox ? !poolForm.checkbox : true)} />} label={<div className="whiteFont">*I have paid via Venmo <b>@jcgilson</b> or Apple Pay <b>(317) 213-8188</b></div>} />
                                 </div> */}
                                 {/* <h1>ADD SUGGESTION BOX HERE</h1> */}
-                                <div className="width100Percent flexRow justifyCenter">
+                                <div className={`width100Percent flexRow justifyCenter${screenWidth < 1000 ? " marginTopLarge marginBottomLarge" : ""}`}>
                                     {!hasReceivedEditingPoolEntry &&
                                         <Button
                                             variant="outlined"
@@ -1675,7 +1693,7 @@ const Pool = () => {
                                             className="whiteButton marginTopLarge marginRightMedium paddingLeftLarge paddingRightLarge"
                                             onClick={() => handleEditEntryClick()}
                                         >
-                                            Edit Entry
+                                            Edit Existing Entry
                                         </Button>
                                     }
                                     {!displayEntrySubmittedMessage &&
@@ -1761,7 +1779,7 @@ const Pool = () => {
 
                             {/* Illustrative player selection */}
                             <FormGroup>
-                                <ul style={{ marginTop: "0px", paddingLeft: "0", columnCount: getColumnCount(), columnGap: "8px" }}>
+                                <ul style={{ marginTop: "16px", paddingLeft: "0", columnCount: getColumnCount(), columnGap: "8px" }}>
                                     {filteredIllustrativePlayers.map(player => {
                                         return (
                                             <li key={player.playerId} className={`flexRow alignCenter playerOption${!(illustrativePlayers.map(currentPlayer => currentPlayer.playerId)).includes(player.playerId) && illustrativePlayers.length == 6 ? " disabled" : ""}${screenWidth < 1000 ? " fontSizeOverride" : ""}`} >

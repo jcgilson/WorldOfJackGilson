@@ -14,7 +14,7 @@
         font-size: 24px !important;
         height: 48px;
     }
-    .pool h3, .pool b, .pool td, .pool span, .pool p,
+    .pool input, .pool h3, .pool b, .pool td, .pool span, .pool p,
     /* Schedule dropdown */
     .scheduleDropdownItem span, .scheduleDropdownItem b {
         font-size: 24px !important;
