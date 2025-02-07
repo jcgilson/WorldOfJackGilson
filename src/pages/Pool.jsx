@@ -100,6 +100,12 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 // Can begin also pulling in other data from rapidapi (points/earnings/fedex rankings/world ranking - display table to arrange?)
 
 
+// Leaderboard sorting
+    // Sort pool players first by score/ then by thru === NS
+    // When some players have not finished R1, and NS for R2, don't use R1 in R2 column
+// Pool Leaderboard scoring
+    // When 5 golfers remain after WD, use NS score in place of +18
+
 
 // Order of events - starting with first useEffect to identify configuration
 
@@ -969,9 +975,9 @@ const Pool = () => {
             for (let j = 0; j < pool[i].entryData.selectedPlayers.length; j++) {
                 // Find index of current player in leaderboard
                 const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === pool[i].entryData.selectedPlayers[j].playerId);
+                const playerLeaderboardInfo = leaderboard.leaderboard[playerLeaderboardIndex];
                 // Temporarily set current players' leaderboard info
                 if (playerLeaderboardIndex !== -1) {
-                    const playerLeaderboardInfo = leaderboard.leaderboard[playerLeaderboardIndex];
                     // Create a new player obj containing leaderboard and salary info
                     let tempPlayerObj = {
                         salary: pool[i].entryData.selectedPlayers[j].salary,
@@ -980,7 +986,7 @@ const Pool = () => {
                         firstName: playerLeaderboardInfo.playerDemographics.firstName,
                         playerId: playerLeaderboardInfo.playerDemographics.playerId,
                         totalScoreToPar: playerLeaderboardInfo.scoring.totalScoreToPar,
-                        thru: playerLeaderboardInfo.progress.thru,
+                        thru: !["WD", "CUT"].includes(playerLeaderboardInfo.scoring.position) && !playerLeaderboardInfo.progress.thru ? playerLeaderboardInfo.tournamentInfo.teeTime : playerLeaderboardInfo.progress.thru,
                         currentRoundScore: playerLeaderboardInfo.progress && playerLeaderboardInfo.progress.currentRoundScore ? playerLeaderboardInfo.progress.currentRoundScore : null,
                         roundsUsed: []
                     };
@@ -1000,6 +1006,22 @@ const Pool = () => {
                     }
                     // Save player to selected player info now that entire object with salaries, leaderboard info, and scores are saved
                     players.push(tempPlayerObj);
+                } else {
+                    players.push({
+                        salary: pool[i].entryData.selectedPlayers[j].salary,
+                        position: "WD",
+                        lastName: pool[i].entryData.selectedPlayers[j].lastName,
+                        firstName: pool[i].entryData.selectedPlayers[j].firstName,
+                        playerId: `playerNotUsedId${j}`,
+                        totalScoreToPar: "WD",
+                        thru: "WD",
+                        currentRoundScore: "WD",
+                        roundsUsed: [],
+                        round1: "+18",
+                        round2: "+18",
+                        round3: "+18",
+                        round4: "+18"
+                    })
                 }
             }
 
@@ -1016,18 +1038,29 @@ const Pool = () => {
                         // Find player index in leaderboard data
                         const playerLeaderboardIndex = leaderboard.leaderboard.findIndex(player => player.playerDemographics.playerId === players[i].playerId);
                         // Push current players round scores to array
-                        allRoundScores.push({
-                            // When player has no current score, use 0 unless position CUT or WD, then use 18
-                            playerIsCutOrWd: ["CUT", "WD"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position),
-                            playerId: players[i].playerId,
-                            thru: leaderboard.leaderboard[playerLeaderboardIndex].progress.thru ? leaderboard.leaderboard[playerLeaderboardIndex].progress.thru : "-",
-                            scoreToPar:  ["WD", "CUT"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position) && !players[i][`round${round + 1}`]
-                                ? 18 // Round score is 18 for cut players
-                                : (leaderboard.leaderboard[playerLeaderboardIndex].scoring.position === "-" || !players[i][`round${round + 1}`])
-                                    ? 0 // When round not started, score is 0 (E)
-                                    : players[i][`round${round + 1}`]
-                        });
+                        if (playerLeaderboardIndex !== -1) {
+                            allRoundScores.push({
+                                // When player has no current score, use 0 unless position CUT or WD, then use 18
+                                playerIsCutOrWd: ["CUT", "WD"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position),
+                                playerId: players[i].playerId,
+                                thru: leaderboard.leaderboard[playerLeaderboardIndex].scoring.position === "WD" && !leaderboard.leaderboard[playerLeaderboardIndex].scoring.rounds[round] ? "WD" : leaderboard.leaderboard[playerLeaderboardIndex].progress.thru ? leaderboard.leaderboard[playerLeaderboardIndex].progress.thru : "-",
+                                scoreToPar:  ["WD", "CUT"].includes(leaderboard.leaderboard[playerLeaderboardIndex].scoring.position) && !players[i][`round${round + 1}`]
+                                    ? 18 // Round score is 18 for cut players
+                                    : (leaderboard.leaderboard[playerLeaderboardIndex].scoring.position === "-" || !players[i][`round${round + 1}`])
+                                        ? 0 // When round not started, score is 0 (E)
+                                        : players[i][`round${round + 1}`]
+                            });                            
+                        } else {
+                            // When selected DFS player is not in leaderboard, show as withdrawn
+                            allRoundScores.push({
+                                playerIsCutOrWd: true,
+                                playerId: players[i].playerId,
+                                thru: "WD",
+                                scoreToPar: "-"
+                            })
+                        }
                     }
+
                     // Sort current round scores by score  
                     allRoundScores = allRoundScores.sort((a, b) => 
                         (
@@ -1132,25 +1165,7 @@ const Pool = () => {
                 name: pool[i].entryData.name,
                 salaryCapUsed: pool[i].entryData.salaryCapUsed,
                 scoring: tempScoringObj,
-                players: players.sort((a, b) => 
-                    (
-                        a.totalScoreToPar === "E"
-                            ? 0
-                            : a.totalScoreToPar === "-"
-                                ? a.position === "CUT"
-                                    ? 100
-                                    : 101       
-                                : a.totalScoreToPar
-                    ) - (
-                        b.totalScoreToPar === "E"
-                        ? 0
-                        : b.totalScoreToPar === "-"
-                            ? b.position === "CUT"
-                                ? 100
-                                : 101       
-                            : b.totalScoreToPar
-                    ) 
-                ),
+                players: players.sort((a, b) => a.countedScoreToPar - b.countedScoreToPar),
             });
         }
 
@@ -1889,7 +1904,18 @@ const Pool = () => {
                                             {leaderboard.roundId > 2 && <TableCell key={6} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R3</h3></TableCell>}
                                             {leaderboard.roundId > 3 && <TableCell key={7} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">R4</h3></TableCell>}
                                             <TableCell key={8} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">THRU</h3></TableCell>
-                                            <TableCell key={9} style={{ width: "70px", textAlign: "center" }}><h3 className="whiteFont">Total</h3></TableCell>
+                                            <TableCell key={9} style={{ width: "70px", textAlign: "center" }}>
+                                                <div className="flexRow justifyCenter alignCenter" style={{ paddingBottom: "2px", paddingLeft: "6px"}}>
+                                                    <h3 className="whiteFont">Total</h3>
+                                                    <Tooltip
+                                                        title={
+                                                            <div>Players are sorted in order of total score to par counted</div>
+                                                        }
+                                                    >
+                                                        <InfoIcon className="whiteFont" style={{ maxHeight: "16px" }} />
+                                                    </Tooltip>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -1918,7 +1944,7 @@ const Pool = () => {
                                                                 {leaderboard.roundId > 2 && <TableCell key={j + 5} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(3) ? "strikethroughFont" : ""}>{player.round3 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round3 === "-" ? "+18" : player.round3}</TableCell>}
                                                                 {leaderboard.roundId > 3 && <TableCell key={j + 6} style={{ textAlign: "center" }} className={!player.roundsUsed.includes(4) ? "strikethroughFont" : ""}>{player.round4 == 0 ? "E" : ["CUT", "WD"].includes(player.position) && player.round4 === "-" ? "+18" : player.round4}</TableCell>}
                                                                 <TableCell key={j + 7} style={{ textAlign: "center" }}>{player.thru ? player.thru.replace("*", "") : "NS"}</TableCell>
-                                                                <TableCell key={j + 8} style={{ textAlign: "center" }}>{parseInt(player.countedScoreToPar) > 0 ? `+${player.countedScoreToPar}` : player.countedScoreToPar == 0 ? "E" : player.countedScoreToPar}</TableCell>
+                                                                <TableCell key={j + 8} style={{ textAlign: "center" }}>{player.totalScoreToPar === "WD" ? "WD" : parseInt(player.countedScoreToPar) > 0 ? `+${player.countedScoreToPar}` : player.countedScoreToPar == 0 ? "E" : player.countedScoreToPar}</TableCell>
                                                             </TableRow>
                                                         )
                                                     })}
