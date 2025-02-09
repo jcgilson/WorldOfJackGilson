@@ -232,6 +232,7 @@ const Pool = () => {
     const [displayEditingPoolEntryNotFound, setDisplayEditingPoolEntryNotFound] = useState(false); // Boolean - controls when to display warning that entry could not be found
     const [displayEditingPoolEntryFieldWarning, setDisplayEditingPoolEntryFieldWarning] = useState(false); // Boolean - displays warning when trying to edit entry without phone and email entered
     const [expandSelectedPlayers, setExpandSelectedPlayers] = useState(false); // Boolean - controls expansion state of 
+    const [displayApiLimitError, setDisplayApiLimitError] = useState(false); // Boolean - displays API limit error message
     const [snackbarMessages, setSnackbarMessages] = useState([]); // String
     
     
@@ -755,7 +756,7 @@ const Pool = () => {
                         if (
                             (
                                 // It's been at least 15 minutes since last fetch
-                                ((timestamp - response.data.timestamp) > 900000)
+                                ((timestamp - response.data.timestamp) > 1) // fix this
                                 // It's a tournament day
                                 && isReadyToGetUpdatedLeaderboardInfo
                                 // Round is not in "Official" (completed) status
@@ -1209,6 +1210,9 @@ const Pool = () => {
                 setIsScheduleLoading(false);
                 setPreventScheduleRetries(true);
             } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    setDisplayApiLimitError(true);
+                }
                 console.error(error);
                 setIsScheduleLoading(false);
                 setPreventScheduleRetries(true);
@@ -1246,6 +1250,9 @@ const Pool = () => {
                 setTournamentResponse(response.data);
                 setIsAllPlayersLoading(false);
             } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    setDisplayApiLimitError(true);
+                }
                 console.error(error);
                 setIsAllPlayersLoading(false);
             }
@@ -1273,8 +1280,8 @@ const Pool = () => {
                 headers: {
                     'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
                     // 'x-rapidapi-key': '0598eb6b02msh5b4a6094ffc4e05p1c4f7djsnb241d4f5f1fe' // .n
-                    // 'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
-                    'x-rapidapi-key': '63d42b3368msh0f38118424b82bap14014ajsn0b2ea7d4f38a' // ggp
+                    'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
+                    // 'x-rapidapi-key': '63d42b3368msh0f38118424b82bap14014ajsn0b2ea7d4f38a' // ggp
                 }
             };
               
@@ -1284,6 +1291,9 @@ const Pool = () => {
                 setIsLeaderboardLoading(false);
                 setPreventLeaderboardRetries(true);
             } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    setDisplayApiLimitError(true);
+                }
                 setPreventLeaderboardRetries(true);
                 console.error(error);
                 setIsLeaderboardLoading(false);
@@ -1661,7 +1671,7 @@ const Pool = () => {
                     }
                     
                     {/* Pool entry form */}
-                    {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) && activeTournamentDay &&
+                    {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) && !activeTournamentDay &&
                         <div style={{ width: screenWidth < 1000 ? "100%" : "85%" }}>
                             {/* Pool entry form */}
                             <div className="flexColumn" style={{ width: screenWidth < 1000 ? "100%" : "420px", margin: "16px auto" }}>
@@ -2010,6 +2020,9 @@ const Pool = () => {
                     </div>
                 </div>
             }
+
+            {/* API limit message */}
+            {displayApiLimitError && <h1 className="marginTopMassive">Oops, Jack reached his monthly API limit and has enter a different email to make this work again. Contact <a className="whiteFont textDecoration" href= "mailto:GilsonGolfPools@gmail.com">GilsonGolfPools@gmail.com</a></h1>}
 
             {/* Snackbar */}
             {snackbarMessages && snackbarMessages.map((snackbarMessage, i) => {
