@@ -1661,7 +1661,7 @@ const Pool = () => {
                     }
                     
                     {/* Pool entry form */}
-                    {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) &&
+                    {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) && activeTournamentDay &&
                         <div style={{ width: screenWidth < 1000 ? "100%" : "85%" }}>
                             {/* Pool entry form */}
                             <div className="flexColumn" style={{ width: screenWidth < 1000 ? "100%" : "420px", margin: "16px auto" }}>
