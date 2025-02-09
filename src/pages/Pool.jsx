@@ -1198,7 +1198,8 @@ const Pool = () => {
                 headers: {
                     'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
                     // 'x-rapidapi-key': '0598eb6b02msh5b4a6094ffc4e05p1c4f7djsnb241d4f5f1fe' // .n
-                    'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
+                    // 'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
+                    'x-rapidapi-key': '63d42b3368msh0f38118424b82bap14014ajsn0b2ea7d4f38a' // ggp
                 }
             };
             
@@ -1235,7 +1236,8 @@ const Pool = () => {
                 headers: {
                     'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
                     // 'x-rapidapi-key': '0598eb6b02msh5b4a6094ffc4e05p1c4f7djsnb241d4f5f1fe' // .n
-                    'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
+                    // 'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
+                    'x-rapidapi-key': '63d42b3368msh0f38118424b82bap14014ajsn0b2ea7d4f38a' // ggp
                 }
             };
         
@@ -1271,7 +1273,8 @@ const Pool = () => {
                 headers: {
                     'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
                     // 'x-rapidapi-key': '0598eb6b02msh5b4a6094ffc4e05p1c4f7djsnb241d4f5f1fe' // .n
-                    'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
+                    // 'x-rapidapi-key': '61ed57e536msh30168bd1f1e8ffep126523jsnfd01ffcdc1bf' // 97
+                    'x-rapidapi-key': '63d42b3368msh0f38118424b82bap14014ajsn0b2ea7d4f38a' // ggp
                 }
             };
               
