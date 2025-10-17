@@ -23,7 +23,8 @@ How it's made
 // how do i create a new react app with connections to mongodb
 // how do i connect this code to a github repository
 
-
+// Future Chat GPT prompts
+// 
 
 ********************************************************************************
 Prioritization

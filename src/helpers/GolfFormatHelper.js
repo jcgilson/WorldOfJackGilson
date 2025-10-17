@@ -1419,6 +1419,8 @@ const calculateCourseRecords = (courseInfo, courseMetrics) => {
         // } else return null;
     })
 
+    tableRows = tableRows.sort(function(a,b) {return (a.courseName > b.courseName) ? 1 : ((b.courseName > a.courseName) ? -1 : 0);})
+
     return (
         <table className="golfTable marginTopMassive marginBottomMassive">
             <thead>
@@ -1440,7 +1442,7 @@ const calculateCourseRecords = (courseInfo, courseMetrics) => {
                     return (
                         <tr>
                             {tableRow.map((tableData, j) => {
-                                return <td className={j == 0 ? "" : "paddingLeftMassive"}>{tableData}</td>
+                                return <td className={(tableRow[tableRow.length - 1].includes(": E") || tableRow[tableRow.length - 1].includes(": -")) ? j == 0 ? "backgroundColorEagleRow" : "backgroundColorEagleRow paddingLeftMassive" : j == 0 ? "" : "paddingLeftMassive"}>{tableData}</td>
                             })}
                         </tr>
                     )
@@ -2264,7 +2266,7 @@ export const courseSummary = (courseInfo, allRounds, expandSingleHoleMetric, han
                     const executeScroll = () => holeSummaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
                     return (
                         <div ref={holeSummaryRef} id={hole.key} className={`holeData flexRow${expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? " expanded" : ""}`} key={hole.key}>
-                            <img src={imageSourceMappings[hole]} style={{ height: `${expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? "700px" : "476px"}`, marginRight: "8px", borderTopLeftRadius: "12px", borderBottomLeftRadius: "12px" }} alt={`${hole}SingleHoleMetric`} />
+                            {imageSourceMappings[hole] && <img src={imageSourceMappings[hole]} style={{ height: `${expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? "700px" : "476px"}`, marginRight: "8px", borderTopLeftRadius: "12px", borderBottomLeftRadius: "12px" }} alt={`${hole}SingleHoleMetric`} />}
                             <div className="flexRow width100Percent justifySpaceAround">
                                 {expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole &&
                                     <div className="flexColumn marginTopMedium dynamicPanel">
@@ -2388,7 +2390,7 @@ export const courseSummary = (courseInfo, allRounds, expandSingleHoleMetric, han
                                 </div>
                             </div>
                             {/* Changing Expand positioning when course tour hole images are unavailable */}
-                            <span className="cursorPointer marginBottomSmall" style={{ width: "0", position: "relative", top: expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? "670px" : "452px", right: "60px" }} onClick={() => { executeScroll(); handleSetExpandSingleHoleMetric(hole); }}>{expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? "Collapse" : "Expand"}</span>
+                            <span className="cursorPointer marginBottomSmall" style={{ width: "0", position: "relative", top: expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? "670px" : imageSourceMappings[hole] ? "452px" : "400px", right: "60px" }} onClick={() => { executeScroll(); handleSetExpandSingleHoleMetric(hole); }}>{expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? "Collapse" : "Expand"}</span>
                             {/* <span className="cursorPointer marginBottomSmall" style={{ width: "0", position: "relative", bottom: "-24px", right: "60px" }} onClick={() => { executeScroll(); handleSetExpandSingleHoleMetric(hole); }}>{expandSingleHoleMetric.expanded && expandSingleHoleMetric.hole === hole ? "Collapse" : "Expand"}</span> */}
                         </div>
                     );

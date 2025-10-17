@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 // Pages
 import Golf from './pages/Golf';
 import Pool from './pages/Pool'
+import Karalyn from './pages/Karalyn'
 // Styles
 import './App.css';
 import "./global.css"
 
 function App() {
-  const [flow, setFlow] = useState("Pool");
+  const [flow, setFlow] = useState("Golf"); // [Pool, Golf, Karalyn]
 
   return (
     <div className="body color026647">
@@ -16,6 +17,7 @@ function App() {
       </div> */}
       {flow === "Golf" && <Golf/>}
       {flow === "Pool" && <Pool/>}
+      {flow === "Karalyn" && <Karalyn/>}
     </div>
   );
 }

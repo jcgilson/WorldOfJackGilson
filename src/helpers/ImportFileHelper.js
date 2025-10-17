@@ -74,27 +74,27 @@ export const importFile = (
                     let column = 2; // Data starts on line 2
                     for (let hole = 1; hole <= 18; hole++ ) {
                         courseData[course.courseKey][`hole${hole}`] = {};
-                        courseData[course.courseKey][`hole${hole}`].hole = hole;
-                        courseData[course.courseKey][`hole${hole}`].par = workSheetData[column];
-                        courseData[course.courseKey][`hole${hole}`].distance = workSheetData[column + 1];
-                        courseData[course.courseKey][`hole${hole}`].handicap = workSheetData[column + 2];
+                        courseData[course.courseKey][`hole${hole}`].hole = parseInt(hole);
+                        courseData[course.courseKey][`hole${hole}`].par = parseInt(workSheetData[column]);
+                        courseData[course.courseKey][`hole${hole}`].distance = parseInt(workSheetData[column + 1]);
+                        courseData[course.courseKey][`hole${hole}`].handicap = parseInt(workSheetData[column + 2]);
 
                         // F9/B9 Yardage and Par
                         if (hole <= 9) {
                             if (hole === 1) {
-                                courseData[course.courseKey].f9Par = workSheetData[column];
-                                courseData[course.courseKey].f9Yardage = workSheetData[column + 1];
+                                courseData[course.courseKey].f9Par = parseInt(workSheetData[column]);
+                                courseData[course.courseKey].f9Yardage = parseInt(workSheetData[column + 1]);
                             } else {
-                                courseData[course.courseKey].f9Par += workSheetData[column];
-                                courseData[course.courseKey].f9Yardage += workSheetData[column + 1];
+                                courseData[course.courseKey].f9Par += parseInt(workSheetData[column]);
+                                courseData[course.courseKey].f9Yardage += parseInt(workSheetData[column + 1]);
                             }
                         } else {
                             if (hole === 10) {
-                                courseData[course.courseKey].b9Par = workSheetData[column];
-                                courseData[course.courseKey].b9Yardage = workSheetData[column + 1];
+                                courseData[course.courseKey].b9Par = parseInt(workSheetData[column]);
+                                courseData[course.courseKey].b9Yardage = parseInt(workSheetData[column + 1]);
                             } else {
-                                courseData[course.courseKey].b9Par += workSheetData[column];
-                                courseData[course.courseKey].b9Yardage += workSheetData[column + 1];
+                                courseData[course.courseKey].b9Par += parseInt(workSheetData[column]);
+                                courseData[course.courseKey].b9Yardage += parseInt(workSheetData[column + 1]);
                             }
                         }
                         column = column + 7; // Skip empty columns
@@ -267,16 +267,17 @@ export const importFile = (
                                     roundData.roundInfo.numHoles++;
 
                                     let score = (roundData.nonGhinRounds.scrambleRound || (roundData.nonGhinRounds.leagueRound && typeof row[columnCount] === 'string'))? parseInt(row[columnCount].split(", ")[0]) : parseInt(row[columnCount]);
-                                    
-                                    if (score === 1) roundData.scoring.underParRound = true;
-                                    if (courseData[course.courseKey][`hole${hole}`].par >= score + 2) roundData.scoring.numEagles++; // Eagle
-                                    if (courseData[course.courseKey][`hole${hole}`].par === score + 1) roundData.scoring.numBirdies++; // Birdie
-                                    if (courseData[course.courseKey][`hole${hole}`].par === score) roundData.scoring.numPars++; // Par
-                                    if (courseData[course.courseKey][`hole${hole}`].par === score - 1) roundData.scoring.numBogey++; // Bogey
-                                    if (courseData[course.courseKey][`hole${hole}`].par <= score - 2) roundData.scoring.numBogeyPlus++; // Bogey Plus
+                                    let holePar = parseInt(courseData[course.courseKey][`hole${hole}`].par);
 
-                                    roundData.scoring.coursePar = roundData.scoring.coursePar + courseData[course.courseKey][`hole${hole}`].par;
-                                    roundData.scoring.scoreToPar =  roundData.scoring.scoreToPar + score - courseData[course.courseKey][`hole${hole}`].par
+                                    if (score === 1) roundData.scoring.underParRound = true;
+                                    if (holePar >= score + 2) roundData.scoring.numEagles++; // Eagle
+                                    if (holePar === score + 1) roundData.scoring.numBirdies++; // Birdie
+                                    if (holePar === score) roundData.scoring.numPars++; // Par
+                                    if (holePar === score - 1) roundData.scoring.numBogey++; // Bogey
+                                    if (holePar <= score - 2) roundData.scoring.numBogeyPlus++; // Bogey Plus
+
+                                    roundData.scoring.coursePar = roundData.scoring.coursePar + parseInt(holePar);
+                                    roundData.scoring.scoreToPar =  roundData.scoring.scoreToPar + score - parseInt(holePar);
 
                                     // Debugging
                                     // console.log("typeof", parseInt(row[columnCount + 5].split(", ")[0]))
@@ -294,7 +295,12 @@ export const importFile = (
 
 
 // evaluate if values include "," - not typeof === "number"
-                                    console.log("row[columnCount + 4]",row[columnCount + 4] )
+                                    // console.log("row[columnCount + 4]",row[columnCount + 4] )
+
+
+                                    // console.log("\nroundData",roundData)
+                                    // console.log("hole",hole)
+                                    // console.log("row", row)
 
                                     // Single hole data
                                     roundData[`hole${hole}`] = {
@@ -317,7 +323,7 @@ export const importFile = (
                                             dth: roundData[`hole${hole}`].dth,
                                             fpm: roundData[`hole${hole}`].puttLength,
                                             gir: roundData[`hole${hole}`].gir,
-                                            scoreToPar: score - courseData[course.courseKey][`hole${hole}`].par
+                                            scoreToPar: score - holePar
                                         });
                                     }
 
@@ -339,11 +345,11 @@ export const importFile = (
 
                                     const roundDataHole = roundData[`hole${hole}`];
                                     const holeDtg = roundDataHole.dtg;
-                                    const holeDtg2 = courseData[course.courseKey][`hole${hole}`].par == 5 ? roundDataHole.dtg2 : 0;
+                                    const holeDtg2 = holePar == 5 ? roundDataHole.dtg2 : 0;
 
                                     // F9/B9 data
                                     if (hole < 10) {
-                                        if (courseData[course.courseKey][`hole${hole}`].par == 5) {
+                                        if (holePar == 5) {
                                             roundData.approach.f9Par5s = parseInt(roundData.approach.f9Par5s) + 1;
                                             roundData.approach.dtgF9Par5 = parseInt(roundData.approach.dtgF9Par5) + holeDtg;
                                             // TODO: will need to take into account when Par 5 is G-1, don't need to add distance to totals
@@ -364,7 +370,7 @@ export const importFile = (
                                         roundData.putting.dthF9Total = roundData.putting.dthF9Total + (typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[0]));
                                         roundData.putting.dthTotal = roundData.putting.dthTotal + (typeof row[columnCount + 5] === "number" ? row[columnCount + 5] : parseInt(row[columnCount + 5].split(", ")[0]));
                                     } else {
-                                        if (courseData[course.courseKey][`hole${hole}`].par == 5) {
+                                        if (holePar == 5) {
                                             roundData.approach.b9Par5s = parseInt(roundData.approach.b9Par5s) + 1;
                                             roundData.approach.dtgB9Par5 = parseInt(roundData.approach.dtgB9Par5) + holeDtg;
                                             // TODO: will need to take into account when Par 5 is G-1, don't need to add distance to totals
@@ -390,7 +396,7 @@ export const importFile = (
                                     if (!(roundData.nonGhinRounds.legacyRound && !row[columnCount + 1]) && parseInt(row[columnCount + 1]) > 2) roundData.putting.num3Putts = roundData.putting.num3Putts + 1;
 
                                     // CTP for Par 3's (first 8 rounds)
-                                    const isPar3 = courseData[course.courseKey][`hole${hole}`].par === 3;
+                                    const isPar3 = holePar === 3;
                                     if (
                                         isPar3 &&
                                         (row[columnCount + 3] === 'G' || row[columnCount + 3] === 'G-1') &&

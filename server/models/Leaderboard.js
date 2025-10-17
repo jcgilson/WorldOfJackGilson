@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const leaderboardSchema = new mongoose.Schema({
   roundId: { type: Number, required: true },
@@ -13,4 +13,4 @@ const leaderboardSchema = new mongoose.Schema({
   displayDownIcon: { type: Boolean, required: true },
 }, { minimize: false, versionKey: false });
 
-module.exports = mongoose.model('leaderboards', leaderboardSchema);
+export default mongoose.model('leaderboards', leaderboardSchema);

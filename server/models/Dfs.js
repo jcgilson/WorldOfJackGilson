@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const dfsSchema = new mongoose.Schema({
   year: { type: Number, required: true },
@@ -6,4 +6,4 @@ const dfsSchema = new mongoose.Schema({
   salaries: { type: Object, required: true }
 }, { minimize: false, versionKey: false });
 
-module.exports = mongoose.model('dfs', dfsSchema);
+export default mongoose.model('dfs', dfsSchema);

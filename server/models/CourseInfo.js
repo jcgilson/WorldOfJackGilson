@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const courseInfoSchema = new mongoose.Schema({
   b9Par: { type: Number, required: false },
@@ -29,4 +29,4 @@ const courseInfoSchema = new mongoose.Schema({
   hole18: { type: Object, required: false }
 }, { minimize: false, versionKey: false });
 
-module.exports = mongoose.model('courseInfo', courseInfoSchema);
+export default mongoose.model('courseInfo', courseInfoSchema);

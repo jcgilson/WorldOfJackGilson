@@ -243,8 +243,6 @@ export const calculateScoringAverageMetrics = (courseInfo, allRounds) => {
         }
     }
 
-    console.log("scoringAverages",scoringAverages)
-
     return scoringAverages;
 }
 

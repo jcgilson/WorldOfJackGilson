@@ -1,29 +1,26 @@
-// server.js
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const app = express();
+import express from 'express'
+import mongoose from 'mongoose'
+import cors from 'cors'
 // import { uri } from "./uri.js";
-
-// const env = "golf"
-const env = "pool"
+const env = "golf" // golf or pool
+const app = express();
 
 // Route for insert (User file)
-const GolfRoundsCollection = require('./models/GolfRounds');
-const CourseInfoCollection = require('./models/CourseInfo');
+import GolfRoundsCollection from './models/GolfRounds.js';
+import CourseInfoCollection from './models/CourseInfo.js';
 
-const ScheduleCollection = require('./models/Schedule');
-const PlayersCollection = require('./models/Players');
-const LeaderboardCollection = require('./models/Leaderboard');
-const DfsCollection = require('./models/Dfs');
-const PoolsCollection = require('./models/Pools');
+import ScheduleCollection from './models/Schedule.js';;
+import PlayersCollection from './models/Players.js';
+import LeaderboardCollection from './models/Leaderboard.js';
+import DfsCollection from './models/Dfs.js';
+import PoolsCollection from './models/Pools.js';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // MongoDB URI (Replace with your MongoDB Atlas URI or local URI)
-const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
+// const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_POOL; // deployed POOL env
 // const mongoURI = process.env.REACT_APP_MONGO_CONNECTION_STRING_GOLF; // deployed GOLF env
 
 // Connect to MongoDB

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const playersSchema = new mongoose.Schema({
   year: { type: Number, required: true },
@@ -6,4 +6,4 @@ const playersSchema = new mongoose.Schema({
   players: { type: Object, required: true }
 }, { minimize: false, versionKey: false });
 
-module.exports = mongoose.model('players', playersSchema);
+export default mongoose.model('players', playersSchema);

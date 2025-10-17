@@ -40,6 +40,9 @@ const Golf = () => {
      * 
      */
 
+    // Local dev
+    // Uncomment the following useEffect: Fetch golf rounds
+
 
 
         // Remove any attributes from existing scorecards if needed BEFORE upload
@@ -63,7 +66,7 @@ const Golf = () => {
     // Internal state
     const [displayUploadButton, setDisplayUploadButton] = useState(true);
     const [filters, setFilters] = useState(["2025"]);
-    const [courseTours, setCourseTours] = useState(["South Suburban"]); // "Course Tour" tab shows "hole course by default"
+    const [courseTours, setCourseTours] = useState(["City Park"]); // "Course Tour" tab shows "hole course by default"
     const [isLoading, setIsLoading] = useState(false);
     const [allRounds, setAllRounds] = useState([]);
     const [displayedRounds, setDisplayedRounds] = useState([]);
@@ -85,7 +88,7 @@ const Golf = () => {
     const [approachView, setApproachView] = useState("distribution");
     const [displayLegacyFilterWarning, setDisplayLegacyFilterWarning] = useState(false);
     const [handicapCutoffRoundKey, setHandicapCutoffRoundKey] = useState("");
-    const [filterableCourses, setFilterableCourses] = useState(['South Suburban']);
+    const [filterableCourses, setFilterableCourses] = useState(['City Park']);
     const [editingExistingScorecard, setEditingExistingScorecard] = useState(false);
 
     const [displayedNumberOfRounds, setDisplayedNumberOfRounds] = useState(0);
@@ -104,6 +107,7 @@ const Golf = () => {
     const [displayScorecard9HoleRemovalModal, setDisplayScorecard9HoleRemovalModal] = useState(false);
     const [displayNumberHolesRemovedWarningSnackbar, setDisplayNumberHolesRemovedWarningSnackbar] = useState(false);
     const [displayScorecardSubmissionSnackbar, setDisplayScorecardSubmissionSnackbar] = useState(false);
+    const [fileUploadComplete, setFileUploadComplete] = useState(false);
 
     const pinnedCourse = "South Suburban"; // Course pinned atop scorecard entry
     const includePartialRounds = true; // Displays partial rounds
@@ -159,7 +163,7 @@ const Golf = () => {
      * activePage - When user returns to Enter Scorecard page, reset scorecardEntryData
      */
     useEffect(() => {
-        if (Object.keys(activeScorecardEntryCourseInfo).length !== 0 && !editingExistingScorecard) {
+        if (activeScorecardEntryCourseInfo && Object.keys(activeScorecardEntryCourseInfo).length !== 0 && !editingExistingScorecard) {
             const scorecardData = {
                 date: new Date().toDateString()
             };
@@ -225,8 +229,7 @@ const Golf = () => {
 
         (displayedRoundsToggle ? displayedRounds : allRounds).forEach(round => {
             const courseData = courseInfo.find(info => info.courseKey === round.roundInfo.courseKey);
-
-            if (!round.nonGhinRounds.scrambleRound && Object.keys(courseData).length > 0) {
+            if (courseData && !round.nonGhinRounds.scrambleRound && Object.keys(courseData).length > 0) {
                 for (let i = 1; i <= 18; i++) {
                     if (round[`hole${i}`] && round[`hole${i}`].putts) {
                         // if (round[`hole${i}`].dth === 6 && round[`hole${i}`].putts == 3) console.log("blah", round.roundInfo.key, round.roundInfo.date, i)
@@ -258,7 +261,7 @@ const Golf = () => {
      * displayedRoundsToggle - User toggling between displayedRounds and allRounds OR allRounds being updated
      */
     useEffect(() => {
-        getPuttingData()
+        getPuttingData();
     }, [allRounds, displayedRoundsToggle]);
 
     // Summary round for displayed rounds, function handles fetching new values when filters/date field is edited
@@ -301,7 +304,7 @@ const Golf = () => {
         setDisplayedBogeyPlus(`${(tempDisplayedBogeyPlus / tempDisplayedHoles * 18).toFixed(2)} (${(tempDisplayedBogeyPlus / tempDisplayedHoles * 100).toFixed(0)}%)`);
     }
 
-    // useEffect when user returns to Enter Scorecard page - not needed if added in [activeScorecardEntryCourseInfo, activePage] useeffect
+    // useEffect when user returns to Enter Scorecard page - not needed if added in [activeScorecardEntryCourseInfo, activePage] useEffect
     // 
     // useEffect(() => {
     //     if (activePage === "Enter Scorecard") setScorecardEntryData()
@@ -425,7 +428,7 @@ const Golf = () => {
 
     // All useEffects used for Excel upload only (separated for courseinfos and golfrounds collections)
 
-    // Add row to golfrounds collection
+    // // Add row to golfrounds collection
     // const addRound = (round) => {
     //     console.log("inserting round", round)
     //     axios.post('https://worldofjack-server.onrender.com/add-round', round)
@@ -439,12 +442,12 @@ const Golf = () => {
     //     })
     // };
 
-    // Function to add golf rounds to Mongo - allow excel upload to update allRounds state
+    // // Function to add golf rounds to Mongo - allow excel upload to update allRounds state
     // useEffect(() => {
     //     for (let round of allRounds) addRound(round)
     // }, [allRounds]);
 
-    // Add info to courseinfos collection
+    // // Add info to courseinfos collection
     // const addCourseInfo = (info) => {
     //     axios.post('https://worldofjack-server.onrender.com/add-courseInfo', info)
     //     .then((response) => {
@@ -455,19 +458,9 @@ const Golf = () => {
     //     })
     // };
 
-    // Function to add course info to Mongo
+    // // Function to add course info to Mongo
     // useEffect(() => {
-    //     // Option to insert without key for each object
-    //     // console.log(courseInfo)
-    //     // Object.keys(courseInfo).forEach(key => {
-    //     //     let currentObj = courseInfo[key]
-    //     //     currentObj.courseKey = key
-    //     //     // console.log("currentObj",currentObj)
-    //     //     addCourseInfo(currentObj)
-    //     // })
     //     for (let info of courseInfo) addCourseInfo(info)
-
-    //     // addCourseInfo(courseInfo);
     // }, [courseInfo]);
 
     const handleImportFile = (e) => {
@@ -488,6 +481,8 @@ const Golf = () => {
             setTableSort,
             setDisplayUploadButton
         );
+
+        setFileUploadComplete(true);
     }
 
     const displayDefaultPage = displayedRounds.length !== 0;
@@ -879,7 +874,7 @@ const Golf = () => {
                             <TableCell key={1}>{year.yearDisplay} Rounds: <b>{year.rounds}</b></TableCell>
                             <TableCell key={2}>Total Holes: <b>{year.tempDisplayedHoles}</b></TableCell>
                             <TableCell key={3}>Total Courses: <b>{year.uniqueCourses.length}</b></TableCell>
-                            <TableCell key={4}><b>{`${(72 + year.scoreToPar).toFixed(2)} (+${(year.scoreToPar).toFixed(2)})`}</b></TableCell>
+                            <TableCell key={4}><b>{`${(72 + year.scoreToPar * 18).toFixed(2)} (+${(year.scoreToPar * 18).toFixed(2)})`}</b></TableCell>
                             <TableCell key={5}><b>{`${(year.tempDisplayedPutts / year.tempDisplayedHoles * 18).toFixed(2)} (${(year.tempDisplayed3Putts / year.tempDisplayedHoles * 18).toFixed(2)}, ${(year.tempDisplayed3Putts / year.tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>
                             <TableCell key={6}><b>{`${(year.tempDisplayedF / (year.tempDisplayedHoles - year.tempPar3) * 14).toFixed(2)} (${(year.tempDisplayedF / (year.tempDisplayedHoles - year.tempPar3) * 100).toFixed(0)}%)`}</b></TableCell>
                             <TableCell key={7}><b>{`${(year.tempDisplayedG / year.tempDisplayedHoles * 18).toFixed(2)} (${(year.tempDisplayedG / year.tempDisplayedHoles * 100).toFixed(0)}%)`}</b></TableCell>

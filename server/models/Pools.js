@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const poolSchema = new mongoose.Schema({
   year: { type: Number, required: true },
@@ -6,4 +6,4 @@ const poolSchema = new mongoose.Schema({
   entryData: { type: Object, required: true }
 }, { minimize: false, versionKey: false });
 
-module.exports = mongoose.model('pools', poolSchema);
+export default mongoose.model('pools', poolSchema);

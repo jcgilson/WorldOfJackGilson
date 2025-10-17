@@ -57,7 +57,7 @@ import southSuburbanHole18 from "../images/southSuburbanHole18.png";
 // International Flags
 import ireland from "../images/ireland.png";
 import iceland from "../images/iceland.png";
-
+import canada from "../images/canada.png";
 
 export const imageSourceMappings = {
     gileadHighlandsHole1: gileadHighlandsHole1,
@@ -127,7 +127,8 @@ export const pageLinks = [
 // Example: https://commons.wikimedia.org/wiki/File:Flag_of_Ireland.svg
 const internationalFlags = {
     ireland: ireland,
-    iceland: iceland
+    iceland: iceland,
+    canada: canada
 }
 
 // Dropdown options for scorecard entry
@@ -468,6 +469,85 @@ export const courses = [
         sequence: 52,
         displayName: "Wigwam - Blue",
         courseKey: "wigwamBlue",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 53,
+        displayName: "CommonGround",
+        courseKey: "commonGround",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 54,
+        displayName: "Pole Creek Ridge Meadow",
+        courseKey: "polecreek",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 55,
+        displayName: "Grand Elk",
+        courseKey: "grandElk",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 56,
+        displayName: "Grand Lake",
+        courseKey: "grandLake",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 57,
+        displayName: "Granby Ranch",
+        courseKey: "granbyRanch",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 58,
+        displayName: "Sportsman",
+        courseKey: "sportsman",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 59,
+        displayName: "Belterra",
+        courseKey: "belterra",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 60,
+        displayName: "Todd Creek",
+        courseKey: "toddCreek",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 61,
+        displayName: "Banff Springs",
+        courseKey: "banffSprings",
+        scoreCardHoleAbbreviation: "",
+        internationalFlag: internationalFlags.canada
+    },
+    {
+        sequence: 62,
+        displayName: "Green Valley Ranch",
+        courseKey: "greenValleyRanch",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 63,
+        displayName: "Arroyo",
+        courseKey: "arroyo",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 64,
+        displayName: "Siena",
+        courseKey: "siena",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 65,
+        displayName: "Saddle Rock",
+        courseKey: "saddleRock",
         scoreCardHoleAbbreviation: ""
     }
 ]

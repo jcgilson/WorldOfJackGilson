@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const roundSchema = new mongoose.Schema({
   approach: { type: Object, required: false },
@@ -100,4 +100,4 @@ const roundSchema = new mongoose.Schema({
   // dtgB9: {type: Number, required: false }
 }, { minimize: false, versionKey: false });
 
-module.exports = mongoose.model('golfrounds', roundSchema);
+export default mongoose.model('golfrounds', roundSchema);

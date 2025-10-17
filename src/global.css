@@ -341,7 +341,7 @@ svg.selected, .backgroundColorWhite svg.selected, .backgroundColorWhite svg.sele
     background-color: rgba(254, 205, 49, 1) !important;
     background-color: rgb(254, 205, 49) !important;
 } */
-.backgroundColorEagleRow td, .backgroundColorEagleRow a {
+.backgroundColorEagleRow td, .backgroundColorEagleRow a, .backgroundColorEagleRow div, td.backgroundColorEagleRow {
     /* color: black; */
     color: rgb(254, 205, 49) !important;
 
