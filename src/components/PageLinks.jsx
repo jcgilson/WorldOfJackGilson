@@ -6,7 +6,7 @@ const PageLinks = (props) => {
     return (
         <div className="pageLinks marginTopMedium marginBottomExtraSmall">
             {pageLinks.map((page, i) => {
-                return <a key={i} onClick={() => setActivePage(page)} className={`marginRightExtraLarge cursorPointer pageLinkFont${page === activePage? " active" : ""}`}>{page}</a>
+                return <a key={i} onClick={() => setActivePage(page)} className={`marginLeftSmall marginRightSmall cursorPointer pageLinkFont${page === activePage? " active" : ""}`}>{page}</a>
             })}
         </div>
     )

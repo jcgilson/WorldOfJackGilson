@@ -285,11 +285,9 @@
 .paddingRightMassive {
     padding-right: var(--margin-padding-massive) !important;
 }
-
 .marginTopAuto {
     margin-top: auto !important;
 }
-
 .backgroundColorBlue {
     background-color: var(--color-blue) !important;
 }

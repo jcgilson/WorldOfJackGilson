@@ -549,5 +549,29 @@ export const courses = [
         displayName: "Saddle Rock",
         courseKey: "saddleRock",
         scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 66,
+        displayName: "Aurora Hills",
+        courseKey: "auroraHills",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 67,
+        displayName: "Murphy Creek",
+        courseKey: "murphyCreek",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 68,
+        displayName: "Fox Hollow - Links Canyon",
+        courseKey: "foxHollow",
+        scoreCardHoleAbbreviation: ""
+    },
+    {
+        sequence: 68,
+        displayName: "Riverdale Dunes",
+        courseKey: "riverdaleDunes",
+        scoreCardHoleAbbreviation: ""
     }
 ]

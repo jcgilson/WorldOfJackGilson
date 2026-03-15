@@ -8,7 +8,7 @@ import './App.css';
 import "./global.css"
 
 function App() {
-  const [flow, setFlow] = useState("Golf"); // [Pool, Golf, Karalyn]
+  const [flow, setFlow] = useState("Pool"); // [Pool, Golf, Karalyn]
 
   return (
     <div className="body color026647">

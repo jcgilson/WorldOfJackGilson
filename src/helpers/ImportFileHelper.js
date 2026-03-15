@@ -473,14 +473,7 @@ export const importFile = (
                             // Cumulative data
                             // console.log("roundData.roundInfo.formattedDate",roundData.roundInfo.formattedDate)
                             // console.log("roundData.roundInfo.formattedDate[0]",roundData.roundInfo.formattedDate[0])
-                            // setRoundYears(roundYears.push(roundData.roundInfo.formattedDate))
-
-                            // console.log("roundData",roundData)
-
-
-
-
-                            
+                            // setRoundYears(roundYears.push(roundData.roundInfo.formattedDate))                            
 
                             if (!roundData.nonGhinRounds.legacyRound) {
                                 const fairways = calculateFairways(roundData);
@@ -507,8 +500,6 @@ export const importFile = (
                         }
                     });
                 }
-
-                console.log("allRounds",allRounds)
 
                 // Sort rounds by descending date
                 allRounds.sort(function(a, b){
@@ -542,8 +533,6 @@ export const importFile = (
                     round.roundInfo.sequence = allRounds.length + 1 - sequence;
                     sequence++;
                 }
-                console.log("allRounds after upload should contain sequences in order:", allRounds)
-
 
                 // Filter by yearFilter state
                 const displayedRounds = [];
@@ -619,10 +608,8 @@ export const importFile = (
                 
                 setPuttingData(allPutts);
                 
-                // console.log("allRounds",allRounds)
                 setAllRounds(allRounds);
                 setDisplayedRounds(displayedRounds);
-                console.log("3 calling handleUpdateSummaryRow")
                 handleUpdateSummaryRow(displayedRounds)
                 setTableSort({ method: 'sequence', order: 'descending' });
             });

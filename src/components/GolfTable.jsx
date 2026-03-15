@@ -62,6 +62,7 @@ const GolfTable = (props) => {
                             label="Year"
                             variant="standard"
                             size="small"
+                            style={{ width: "50px" }}
                             onChange={(e) => { 
                                 // console.log("e.target.value",e.target.value)
                                 // console.log("typeof e.target.value",typeof e.target.value)
@@ -74,15 +75,15 @@ const GolfTable = (props) => {
                             }}
                         />
                     </TableCell>
-                    <TableCell key={2} className={`distribute10 altActionFont ${tableSort.method === "sequence" ? tableSort.order === "ascending" || tableSort.order === "" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("sequence", "roundInfo")}><h3>Date</h3></TableCell>
-                    <TableCell key={3} className={`distribute10 altActionFont ${tableSort.method === "course" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("course", "roundInfo")}><h3>Course</h3></TableCell>
+                    <TableCell key={2} className={`altActionFont ${tableSort.method === "sequence" ? tableSort.order === "ascending" || tableSort.order === "" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("sequence", "roundInfo")} style={{ width: "70px" }}><h3>Date</h3></TableCell>
+                    <TableCell key={3} className={`altActionFont ${tableSort.method === "course" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("course", "roundInfo")} style={{ minWidth: "120px" }}><h3>Course</h3></TableCell>
                     <TableCell key={4} className={`distribute10 altActionFont ${tableSort.method === "scoreToPar" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("scoreToPar", "scoring")}><h3>Score</h3></TableCell>
                     <TableCell key={5} className={`distribute10 altActionFont ${tableSort.method === "putts" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("putts", "putting")}><h3>Putts</h3></TableCell>
                     <TableCell key={6} className={`distribute10 altActionFont ${tableSort.method === "f" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("f", "fairways")}><h3>FIR</h3></TableCell>
                     <TableCell key={7} className={`distribute10 altActionFont ${tableSort.method === "g" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("g", "greens")}><h3>GIR</h3></TableCell>
                     {/* Meaningless data */}
-                    {/* <TableCell key={8} className={`distribute10 altActionFont ${tableSort.method === "dtgTotalAverage" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("dtgTotalAverage")}><h3>Av. DTG</h3></TableCell>
-                    <TableCell key={9} className={`distribute10 altActionFont ${tableSort.method === "dthTotalAverage" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("dthTotalAverage")}><h3>Av. DTH</h3></TableCell> */}
+                    {/* <TableCell key={8} className={`distribute8 altActionFont ${tableSort.method === "dtgTotalAverage" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("dtgTotalAverage")}><h3>Av. DTG</h3></TableCell>
+                    <TableCell key={9} className={`distribute8 altActionFont ${tableSort.method === "dthTotalAverage" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("dthTotalAverage")}><h3>Av. DTH</h3></TableCell> */}
                     <TableCell key={10} className={`distribute10 altActionFont ${tableSort.method === "puttLengthTotal" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("puttLengthTotal", "putting")}><h3>FPM</h3></TableCell>
                     <TableCell key={11} className={`distribute10 altActionFont ${tableSort.method === "numBirdies" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("numBirdies", "scoring")}><h3>Birdies</h3></TableCell>
                     <TableCell key={12} className={`distribute10 altActionFont ${tableSort.method === "numBogeyPlus" ? tableSort.order === "ascending" ? "displayDownArrowAfter" : "displayUpArrowAfter" : ""}`} onClick={() => changeSortMethod("numBogeyPlus", "scoring")}><h3>Bogey+</h3></TableCell>
@@ -99,9 +100,9 @@ const GolfTable = (props) => {
                 <TableBody>
                     {/* Summary Row */}
                     <TableRow className="summaryRowBoxShadow">
-                        <TableCell key={1}>Total Rounds: <b>{displayedNumberOfRounds}</b></TableCell>
-                        <TableCell key={2}>Total Holes: <b>{displayedHoles}</b></TableCell>
-                        <TableCell key={3}>Total Courses: <b>{displayedCourses}</b></TableCell>
+                        <TableCell key={1}>Rounds: <b>{displayedNumberOfRounds}</b></TableCell>
+                        <TableCell key={2}>Holes: <b>{displayedHoles}</b></TableCell>
+                        <TableCell key={3}>Courses: <b>{displayedCourses}</b></TableCell>
                         <TableCell key={4}><b>{displayedScoringAverage}</b></TableCell>
                         <TableCell key={5}><b>{displayedPutts}</b></TableCell>
                         <TableCell key={6}><b>{displayedF}</b></TableCell>

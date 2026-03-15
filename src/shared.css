@@ -65,7 +65,7 @@
     max-width: 10% !important;
 }
 .golfTable .distribute10 {
-    width: calc(100% / 10) !important;
+    width: calc((100% / 10) - 50px) !important;
     max-width: 12.5% !important;
 }
 .golfTable .distribute12 {

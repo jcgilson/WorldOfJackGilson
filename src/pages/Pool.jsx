@@ -42,7 +42,7 @@ import * as moment from 'moment'
 // CSS
 import "../pool.css"
 // Imports
-import { schedule2025 } from "../helpers/Schedule2025";
+import { schedule2026 } from "../helpers/Schedule2026";
 import { dfsSalaries } from "../helpers/PoolSalaries";
 
 // Testing
@@ -110,7 +110,7 @@ import { dfsSalaries } from "../helpers/PoolSalaries";
 // Order of events - starting with first useEffect to identify configuration
 
 // CONFIGURATION === "rapidApi"
-    // Initialization calls retrieveScheduleDataRapid() - gets PGA tour season schedule
+    // Initialization calls retrieveScheduleDataRapid() - gets PGA tour season schedule - hardcode to ../helpers/Schedule2026
         // Saves response to scheduleResponse
             // Triggers useEffect [scheduleResponse]
                 // Calls calculateScheduleData()
@@ -199,7 +199,7 @@ const Pool = () => {
     ); // Object
 
     // Mongo/Rapid API data
-    const [schedule, setSchedule] = useState(schedule2025); // Object
+    const [schedule, setSchedule] = useState(schedule2026); // Object
     const [allPlayers, setAllPlayers] = useState(null); // Object
     const [leaderboard, setLeaderboard] = useState(null); // Object
     const [dfs, setDfs] = useState(null); // Object
@@ -253,6 +253,7 @@ const Pool = () => {
             setCurrentYear(fullYear);
 
             date = new Date(date.setHours(0,0,0,0))
+            // date = date.getTime();
 
             // START HARDCODED BLOCK
             
@@ -284,19 +285,32 @@ const Pool = () => {
                 let isReadyToGetUpdatedLeaderboardInfo = false; // If tournament in progress, should begin getting tournament info
                 for (let i = 0; i < schedule.schedule.length; i++) {
                     const currentTournament = schedule.schedule[i];
-                    const start = new Date(currentTournament.startDate);
-                    const end = new Date(currentTournament.endDate);
+                    const start = new Date(currentTournament.date.start);
+                    const end = new Date(currentTournament.date.end);
+                    // let start = startDate.getTime();
+                    // let end = endDate.getTime();
+                    // let startDate = new Date(currentTournament.startDate);
+                    // let endDate = new Date(currentTournament.endDate);
+                    // let start = startDate.getTime();
+                    // let end = endDate.getTime();
+
+                    // console.log("start,end,date",start,end,date,(date <= end) && (date >= start))
+
                     // Date matches start or end date
                     if ((date - start == 0) || (date - end == 0) || (i == schedule.schedule.length - 1)) {
+                        // console.log("date matches start or end date",currentTournament.tournamentId)
                         if (date - start == 0) currentTournamentDay = 1;
                         if (date - end == 0) currentTournamentDay = 4;
                         tempActiveTournamentId = currentTournament.tournamentId;
                         isReadyToGetUpdatedLeaderboardInfo = true; // On start date or end date, able to fetch a live leaderboard
                         break;
                     }
+                    // console.log("next")
                     // Current date is before end date
                     if (date < end) {
+                        // console.log("date before end date",currentTournament.tournamentId)
                         if (date > start) {
+                            // console.log("tournament in progress",currentTournament.tournamentId)
                             // Current date is after start date (tournament in progress)
                             tempActiveTournamentId = currentTournament.tournamentId;
                             if (date - start == 86400000) currentTournamentDay = 2; // 1 day since tournament start
@@ -304,6 +318,7 @@ const Pool = () => {
                             isReadyToGetUpdatedLeaderboardInfo = true; // When tournament in progress, able to fetch a live leaderboard
                             break;
                         } else if (i > 0) {
+                            // console.log("between tournaments",currentTournament.tournamentId)
                             const previousTournament = i > 0 ? schedule.schedule[i - 1] : null;
                             const previousEndDate = new Date(previousTournament.endDate);
                             if (date > previousEndDate) {
@@ -336,6 +351,7 @@ const Pool = () => {
                                 }
                             }
                         } else {
+                            // console.log("before first tournament of year",currentTournament.tournamentId)
                             // Before first tournament of year
                             tempActiveTournamentId = currentTournament.tournamentId;
                             break
@@ -1554,9 +1570,18 @@ const Pool = () => {
     const sortedSchedule = schedule && schedule.schedule ? highlightedTournamentId ? getSortedSchedule() : schedule.schedule : [];
 
     const getTournamentDatesFormattedWithoutYear = (tournament) => {
-        const startDateArray = tournament.startDate.split("/");
-        const endDateArray = tournament.endDate.split("/");
-        return `${startDateArray[0]}/${startDateArray[1]} - ${endDateArray[0]}/${endDateArray[1]}`;
+        // 2025 Schedule format
+        // const startDateArray = tournament.date.start.split("/");
+        // const endDateArray = tournament.date.end.split("/");
+        // return `${startDateArray[0]}/${startDateArray[1]} - ${endDateArray[0]}/${endDateArray[1]}`;
+
+        // 2026 Schedule format
+        const startDateSubstring = tournament.date.start.substring(0, 10);
+        const endDateSubstring = tournament.date.end.substring(0, 10);
+        const startDateArray = startDateSubstring.split("-");
+        const endDateArray = endDateSubstring.split("-");
+
+        return `${parseInt(startDateArray[1])}/${parseInt(startDateArray[2])} - ${parseInt(endDateArray[1])}/${parseInt(endDateArray[2])}`;
     }
 
     const displayLeaderboardArrow = (id) => {

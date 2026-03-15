@@ -766,7 +766,7 @@ export const calculateDrivingMetrics = (courseInfo, allRounds) => {
                     if (singleCourseInfo[`hole${hole}`].par !== 3) { // Exclude par 3's
                         // Hole/scorecard info
                         const holeFirValue = round[`hole${hole}`].fir.toLowerCase();
-                        if (holeFirValue === "na") console.log("hole", hole, "round", round)
+                        if (holeFirValue === "na") console.log("Invalid FIR value for round", round.roundInfo.key, "hole", hole, "round", round);
                         const holeGirValue = round[`hole${hole}`].gir === "G-1" ? "gur" : round[`hole${hole}`].gir.toLowerCase();
                         const holeDtg = round[`hole${hole}`].dtg;
                         const holeDistance = singleCourseInfo[`hole${hole}`].distance;
@@ -801,8 +801,6 @@ export const calculateDrivingMetrics = (courseInfo, allRounds) => {
             }
         }
     }
-
-    console.log("drivingMetrics",drivingMetrics)
 
     return drivingMetrics;
 }

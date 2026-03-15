@@ -1026,7 +1026,6 @@ export const createDrivingTable = (drivingMetrics) => {
 }
 
 export const createApproachTable = (approachMetrics, approachView) => {
-    console.log("approachMetrics",approachMetrics)
     // const ranges = Object.keys(approachMetrics).sort(function(a,b) { return ( a.lowerBound > b.lowerBound ? 1 : a.lowerBound < b.lowerBound ? -1 : 0); });
 
     const formatScore = (score) => {
@@ -1275,7 +1274,6 @@ const createCumulativeGraphs = (displayedRounds, drivingMetrics, puttingMetrics)
 }
 
 export const createPuttingTable = (puttingMetrics) => {
-    console.log("puttingMetrics",puttingMetrics)
     const distances = Object.keys(puttingMetrics.makeByDistance).sort(
         function(a,b) {
             return (
@@ -1438,9 +1436,9 @@ const calculateCourseRecords = (courseInfo, courseMetrics) => {
                 </tr>
             </thead>
             <tbody>
-                {tableRows.map(tableRow => {
+                {tableRows.map((tableRow, i) => {
                     return (
-                        <tr>
+                        <tr key={i}>
                             {tableRow.map((tableData, j) => {
                                 return <td className={(tableRow[tableRow.length - 1].includes(": E") || tableRow[tableRow.length - 1].includes(": -")) ? j == 0 ? "backgroundColorEagleRow" : "backgroundColorEagleRow paddingLeftMassive" : j == 0 ? "" : "paddingLeftMassive"}>{tableData}</td>
                             })}
@@ -1540,8 +1538,6 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
 
     let totalScoreToPar = scoringAverageMetrics[scoringAverageMetrics.length - 1].scoreToPar;
     let totalHoles = scoringAverageMetrics[scoringAverageMetrics.length - 1].numHoles;
-
-    console.log("sandMetrics",sandMetrics)
    
     // Sand
     let sandHoleCount = sandMetrics.sandCount;
@@ -1620,9 +1616,6 @@ export const calculateStats = (courseInfo, allRounds, puttingData, displayedRoun
     const lgDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].lgDrivingDistance / drivingMetrics[drivingMetrics.length - 1].lg).toFixed(0);
     const rgDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].rgDrivingDistance / drivingMetrics[drivingMetrics.length - 1].rg).toFixed(0);
     const fgDrivingAverage = (drivingMetrics[drivingMetrics.length - 1].fgDrivingDistance / drivingMetrics[drivingMetrics.length - 1].fg).toFixed(0);
-
-
-    console.log("lostBallMetrics",lostBallMetrics)
                         
     return (
         <>

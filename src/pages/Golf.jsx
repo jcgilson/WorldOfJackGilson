@@ -385,46 +385,46 @@ const Golf = () => {
 
     // All functions used to fetch data when Mongo is available
     // Fetch golf rounds
-    useEffect(() => {
-        setDisplayUploadButton(false);
-        setIsLoading(true);
-        const getGolfRounds = async () => {
-            try {
-                const reponse = await fetch('https://worldofjack-server.onrender.com/golfRounds')
-                const data = await reponse.json();
-                setAllRounds(data)
-                // Filter by yearFilter state
-                const displayedRounds = [];
-                if (typeof yearFilter === "number") {
-                    for (let round of data) {
-                        const yearSuffix = round.roundInfo.date.split("/")[2]
-                        if ((2000 + parseInt(yearSuffix)) == yearFilter) {
-                            displayedRounds.push(round)
-                        }
-                    }
-                }
-                setDisplayedRounds(displayedRounds)
-            } catch (error) {
-                console.error("Error fetching rounds:", error)
-            }
-        }
-        getGolfRounds();
-    }, [])
+    // useEffect(() => {
+    //     setDisplayUploadButton(false);
+    //     setIsLoading(true);
+    //     const getGolfRounds = async () => {
+    //         try {
+    //             const reponse = await fetch('https://worldofjack-server.onrender.com/golfRounds')
+    //             const data = await reponse.json();
+    //             setAllRounds(data)
+    //             // Filter by yearFilter state
+    //             const displayedRounds = [];
+    //             if (typeof yearFilter === "number") {
+    //                 for (let round of data) {
+    //                     const yearSuffix = round.roundInfo.date.split("/")[2]
+    //                     if ((2000 + parseInt(yearSuffix)) == yearFilter) {
+    //                         displayedRounds.push(round)
+    //                     }
+    //                 }
+    //             }
+    //             setDisplayedRounds(displayedRounds)
+    //         } catch (error) {
+    //             console.error("Error fetching rounds:", error)
+    //         }
+    //     }
+    //     getGolfRounds();
+    // }, [])
 
     // Fetch course info
-    useEffect(() => {
-        const getCourseInfo = async () => {
-            try {
-                const reponse = await fetch('https://worldofjack-server.onrender.com/courseInfo')
-                const data = await reponse.json();
-                setCourseInfo(data)
-            } catch (error) {
-                console.error("Error fetching course info:", error)
-            }
-        }
+    // useEffect(() => {
+    //     const getCourseInfo = async () => {
+    //         try {
+    //             const reponse = await fetch('https://worldofjack-server.onrender.com/courseInfo')
+    //             const data = await reponse.json();
+    //             setCourseInfo(data)
+    //         } catch (error) {
+    //             console.error("Error fetching course info:", error)
+    //         }
+    //     }
 
-        getCourseInfo();
-    }, [])
+    //     getCourseInfo();
+    // }, [])
 
     // All useEffects used for Excel upload only (separated for courseinfos and golfrounds collections)
 
@@ -462,6 +462,12 @@ const Golf = () => {
     // useEffect(() => {
     //     for (let info of courseInfo) addCourseInfo(info)
     // }, [courseInfo]);
+
+    useEffect(() => {
+        if (allRounds.length > 0) {
+            
+        }
+    }, [fileUploadComplete])
 
     const handleImportFile = (e) => {
         importFile(
