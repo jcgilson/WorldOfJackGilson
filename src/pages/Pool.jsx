@@ -43,7 +43,7 @@ import * as moment from 'moment'
 import "../pool.css"
 // Imports
 import { schedule2026 } from "../helpers/Schedule2026";
-import { dfsSalaries } from "../helpers/PoolSalaries";
+// import { dfsSalaries } from "../helpers/PoolSalaries";
 
 // Testing
 // import { testScheduleResponse } from "../test/testScheduleResponse";
@@ -211,7 +211,10 @@ const Pool = () => {
     const [leaderboardIsExpanded, setLeaderboardIsExpanded] = useState(false); // Boolean - controls when all leaderboard rows should be displayed if longer than pool leaderboard row count
 
     // Controls for display pool entry form
-    const [readyToCalculateDfsSalaries, setReadyToCalculateDfsSalaries] = useState(false); // Boolean - if players are available and DFS salaries have not already been stored to mongo, begin calculations 
+    const [readyToCalculateDfsSalaries, setReadyToCalculateDfsSalaries] = useState(false); // Boolean - if players are available and DFS salaries have not already been stored to mongo, begin calculations
+    const [dfsSalaries, setDfsSalaries] = useState([]); // Array - parsed DFS salary data from CSV upload
+    const [dfsWarnings, setDfsWarnings] = useState([]); // Array - warnings from DFS name matching (withdrawals, mismatches)
+    const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
     
     // UI interaction states
     const [highlightedTournamentId, setHighlightedTournamentId] = useState(null); // String
@@ -361,7 +364,7 @@ const Pool = () => {
                 setActiveTournamentId(tempActiveTournamentId);
                 setHighlightedTournamentId(tempActiveTournamentId);
                 // If between tournaments and tournament data is ready to be fetched, first determine if data is already in mongo otherwise fetched from mongo
-                fetchMongoPlayers(fullYear, tempActiveTournamentId, ((isReadyToFetchNewTournamentInfo) && (dfsSalaries.length > 0)) ? true : false);
+                fetchMongoPlayers(fullYear, tempActiveTournamentId, isReadyToFetchNewTournamentInfo);
                 if (currentTournamentDay) fetchMongoLeaderboard(fullYear, tempActiveTournamentId, isReadyToGetUpdatedLeaderboardInfo, currentTournamentDay);
                 fetchMongoPoolEntries(fullYear, tempActiveTournamentId);
                 if (currentTournamentDay) setActiveTournamentDay(currentTournamentDay); // Call setActiveTournamentDay when tournament in progress to aide leaderboard display
@@ -488,15 +491,16 @@ const Pool = () => {
 
     // If players already fetched and DFS salaries are not already in mongo, begin to store all data
     useEffect(() => {
-        if (readyToCalculateDfsSalaries && allPlayers && dfsSalaries) {
+        if (readyToCalculateDfsSalaries && allPlayers && dfsSalaries.length > 0) {
             let tempPlayerSalaries = [];
-    
+            let tempWarnings = [];
+
             let allPlayersNameWithoutSpaces = [];
             let tempAllPlayersWithoutSpaces = [];
             for (let i = 0; i < allPlayers.players.length; i++) {
                 const currentPlayer = allPlayers.players[i];
                 let playerNameWithoutSpaces = `${(currentPlayer.firstName).replace(/ /g, "").toLowerCase()}${(currentPlayer.lastName).replace(/ /g, "").toLowerCase()}`;
-                
+
                 // Some player names are the exactly the same between DFS salary data and Rapid API player data
                 // START HARDCODED PLAYER NAMES
                 playerNameWithoutSpaces = playerNameWithoutSpaces.replaceAll(".","") // Replace "." (example: K.H. Lee)
@@ -513,14 +517,14 @@ const Pool = () => {
                 if (playerNameWithoutSpaces === "") playerNameWithoutSpaces = ""; // "" -> ""
                 */}
                 // END HARDCODED PLAYER NAMES
-                
+
                 allPlayersNameWithoutSpaces.push(playerNameWithoutSpaces)
                 tempAllPlayersWithoutSpaces.push({
                     ...currentPlayer,
                     playerNameWithoutSpaces
                 });
             }
-    
+
             let salaryNamesWithoutSpaces = []
             let salaryPlayersNotFoundInPlayersListFromMongo = [];
             for (let i = 0; i < dfsSalaries.length; i++) {
@@ -541,6 +545,7 @@ const Pool = () => {
                     });
                 } else {
                     console.error(`Player with salary not found in Rapid API data: ${currentDfsPlayer.name} (Salary: ${currentDfsPlayer.salary})`)
+                    tempWarnings.push(`WD/Not found: ${currentDfsPlayer.name} ($${currentDfsPlayer.salary})`);
                     salaryPlayersNotFoundInPlayersListFromMongo.push({
                         ...currentDfsPlayer
                     });
@@ -552,6 +557,18 @@ const Pool = () => {
                     console.error(`Player from Rapid API data not found in salary list: ${allPlayersNameWithoutSpaces[i]}`)
                 }
             }
+
+            // Check for duplicate names in final salary list
+            const nameSet = new Set();
+            for (let i = 0; i < tempPlayerSalaries.length; i++) {
+                const fullName = `${tempPlayerSalaries[i].firstName} ${tempPlayerSalaries[i].lastName}`;
+                if (nameSet.has(fullName)) {
+                    tempWarnings.push(`Duplicate name: ${fullName}`);
+                }
+                nameSet.add(fullName);
+            }
+
+            setDfsWarnings(tempWarnings);
 
             const tempSortedDfsSalaries = tempPlayerSalaries.sort((a, b) => {
                 if (a.salary !== b.salary) {
@@ -572,7 +589,7 @@ const Pool = () => {
             setSortedDfsSalaries(tempSortedDfsSalaries);
             saveDfs(tempDfsObj);
         }
-    }, [allPlayers, readyToCalculateDfsSalaries]);
+    }, [allPlayers, readyToCalculateDfsSalaries, dfsSalaries]);
 
     // Once pool data is fetched from mongo, begin calculating leaderboard
     useEffect(() => {
@@ -656,6 +673,62 @@ const Pool = () => {
                 setIsDfsLoading(false);
             });
     }
+
+    // Parse DraftKings CSV upload and set dfsSalaries state
+    const handleCsvUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const lines = text.split('\n');
+
+            // Parse header to find column indices
+            const headers = lines[0].split(',').map(h => h.trim());
+            const nameIndex = headers.indexOf('Name');
+            const salaryIndex = headers.indexOf('Salary');
+
+            if (nameIndex === -1 || salaryIndex === -1) {
+                setSnackbarMessages([...snackbarMessages, "CSV format error: 'Name' or 'Salary' column not found"]);
+                return;
+            }
+
+            const seen = new Set();
+            const parsed = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',');
+                if (cols.length <= Math.max(nameIndex, salaryIndex)) continue;
+
+                const name = cols[nameIndex].trim();
+                const salary = parseInt(cols[salaryIndex].trim(), 10);
+
+                if (!name || isNaN(salary)) continue;
+
+                // Deduplicate by lowercased name
+                const nameKey = name.toLowerCase();
+                if (seen.has(nameKey)) continue;
+                seen.add(nameKey);
+
+                parsed.push({ name, salary });
+            }
+
+            if (parsed.length === 0) {
+                setSnackbarMessages([...snackbarMessages, "No valid player data found in CSV"]);
+                return;
+            }
+
+            setDfsSalaries(parsed);
+            setDfs(null); // Reset so processing re-triggers
+            setReadyToCalculateDfsSalaries(true);
+            setSnackbarMessages([...snackbarMessages, `Loaded ${parsed.length} player salaries from CSV`]);
+        };
+        reader.readAsText(file);
+
+        // Reset file input so the same file can be re-uploaded
+        event.target.value = null;
+    };
 
     // Store pool form entry
     const savePoolFormEntry = (obj) => {
@@ -1695,6 +1768,38 @@ const Pool = () => {
                         </FormControl>
                     }
                     
+                    {/* Admin: CSV salary upload */}
+                    {isAdmin && !dfs && (activeTournamentId === highlightedTournamentId) && !activeTournamentDay &&
+                        <div className="flexColumn alignCenter" style={{ marginTop: "16px", marginBottom: "16px" }}>
+                            <Button
+                                variant="contained"
+                                component="label"
+                                className="whiteButton"
+                            >
+                                Upload DraftKings CSV
+                                <input
+                                    type="file"
+                                    accept=".csv"
+                                    hidden
+                                    onChange={handleCsvUpload}
+                                />
+                            </Button>
+                            {dfsSalaries.length > 0 &&
+                                <p className="whiteFont" style={{ marginTop: "8px" }}>
+                                    {dfsSalaries.length} players loaded from CSV
+                                </p>
+                            }
+                            {dfsWarnings.length > 0 &&
+                                <Alert severity="warning" style={{ marginTop: "8px", maxWidth: "420px" }}>
+                                    <b>Player mismatches ({dfsWarnings.length}):</b>
+                                    <ul style={{ marginBottom: 0 }}>
+                                        {dfsWarnings.map((w, i) => <li key={i}><span>{w}</span></li>)}
+                                    </ul>
+                                </Alert>
+                            }
+                        </div>
+                    }
+
                     {/* Pool entry form */}
                     {!leaderboard && dfs && dfs.salaries && (activeTournamentId === highlightedTournamentId) && !activeTournamentDay &&
                         <div style={{ width: screenWidth < 1000 ? "100%" : "85%" }}>
