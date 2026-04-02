@@ -43,7 +43,7 @@ import * as moment from 'moment'
 import "../pool.css"
 // Imports
 import { schedule2026 } from "../helpers/Schedule2026";
-// import { dfsSalaries } from "../helpers/PoolSalaries";
+import { dfsSalaries as importedDfsSalaries } from "../helpers/PoolSalaries";
 
 // Testing
 // import { testScheduleResponse } from "../test/testScheduleResponse";
@@ -212,7 +212,7 @@ const Pool = () => {
 
     // Controls for display pool entry form
     const [readyToCalculateDfsSalaries, setReadyToCalculateDfsSalaries] = useState(false); // Boolean - if players are available and DFS salaries have not already been stored to mongo, begin calculations
-    const [dfsSalaries, setDfsSalaries] = useState([]); // Array - parsed DFS salary data from CSV upload
+    const [dfsSalaries, setDfsSalaries] = useState(importedDfsSalaries); // Array - parsed DFS salary data from CSV upload or imported from PoolSalaries.js
     const [dfsWarnings, setDfsWarnings] = useState([]); // Array - warnings from DFS name matching (withdrawals, mismatches)
     const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
     
@@ -300,7 +300,7 @@ const Pool = () => {
                     // console.log("start,end,date",start,end,date,(date <= end) && (date >= start))
 
                     // Date matches start or end date
-                    if ((date - start == 0) || (date - end == 0) || (i == schedule.schedule.length - 1)) {
+                    if ((date - start == 0) || (date - end == 0)) {
                         // console.log("date matches start or end date",currentTournament.tournamentId)
                         if (date - start == 0) currentTournamentDay = 1;
                         if (date - end == 0) currentTournamentDay = 4;
@@ -323,7 +323,7 @@ const Pool = () => {
                         } else if (i > 0) {
                             // console.log("between tournaments",currentTournament.tournamentId)
                             const previousTournament = i > 0 ? schedule.schedule[i - 1] : null;
-                            const previousEndDate = new Date(previousTournament.endDate);
+                            const previousEndDate = new Date(previousTournament.date.end);
                             if (date > previousEndDate) {
                                 // Config variable - (TRUE) show previous tournament for one day after or (FALSE) until next tournament is closer
                                 if (displayPreviousTournamentForOneDay) {
@@ -360,6 +360,10 @@ const Pool = () => {
                             break
                         }
                     }
+                }
+                // If no tournament was found (date is past all tournaments), default to the last tournament
+                if (!tempActiveTournamentId && schedule.schedule.length > 0) {
+                    tempActiveTournamentId = schedule.schedule[schedule.schedule.length - 1].tournamentId;
                 }
                 setActiveTournamentId(tempActiveTournamentId);
                 setHighlightedTournamentId(tempActiveTournamentId);
@@ -1838,16 +1842,16 @@ const Pool = () => {
                                 {/* Entry form fields */}
                                 {screenWidth > 1000 ?
                                     <>
-                                        <TextField value={poolForm.name || null} style={{ maxWidth: "420px" }} id="fullName" label="Name" variant="filled" onChange={(e) => handleFormChange("name", e.target.value)} />
-                                        <TextField value={poolForm.phone || null} style={{ maxWidth: "420px" }} id="phone" label="Phone" variant="filled" onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
-                                        <TextField value={poolForm.email || null} style={{ maxWidth: "420px" }} id="email" label="Email" variant="filled" onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
+                                        <TextField hiddenLabel value={poolForm.name === "" ? "" : poolForm.name || "Name"} style={{ maxWidth: "420px" }} id="fullName" variant="filled" onFocus={(e) => handleFocus("name", e.target.value)} onBlur={(e) => handleBlur("name", e.target.value)} onChange={(e) => handleFormChange("name", e.target.value)} />
+                                        <TextField hiddenLabel value={poolForm.phone === "" ? "" : poolForm.phone || "Phone"} style={{ maxWidth: "420px" }} id="phone" variant="filled" onFocus={(e) => handleFocus("phone", e.target.value)} onBlur={(e) => handleBlur("phone", e.target.value)} onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
+                                        <TextField hiddenLabel value={poolForm.email === "" ? "" : poolForm.email || "Email"} style={{ maxWidth: "420px" }} id="email" variant="filled" onFocus={(e) => handleFocus("email", e.target.value)} onBlur={(e) => handleBlur("email", e.target.value)} onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
                                     </>
                                     :
                                     <>
                                         <TextField fullWidth hiddenLabel value={poolForm.name === "" ? "" : poolForm.name || "Name"} id="fullName" variant="filled" onFocus={(e) => handleFocus("name", e.target.value)} onBlur={(e) => handleBlur("name", e.target.value)} onChange={(e) => handleFormChange("name", e.target.value)} />
                                         <TextField fullWidth hiddenLabel value={poolForm.phone === "" ? "" : poolForm.phone || "Phone"} id="phone" variant="filled" onFocus={(e) => handleFocus("phone", e.target.value)} onBlur={(e) => handleBlur("phone", e.target.value)} onChange={(e) => handleFormChange("phone", e.target.value)} className="marginTopMedium"/>
                                         <TextField fullWidth hiddenLabel value={poolForm.email === "" ? "" : poolForm.email || "Email"} id="email" variant="filled" onFocus={(e) => handleFocus("email", e.target.value)} onBlur={(e) => handleBlur("email", e.target.value)} onChange={(e) => handleFormChange("email", e.target.value)} className="marginTopMedium"/>
-                                    </>    
+                                    </>
                                 }
                                 {/* <div className="formCheckbox marginTopMedium marginBottomMedium">
                                     <FormControlLabel control={<Checkbox onChange={() => handleFormChange("checkbox", poolForm.checkbox ? !poolForm.checkbox : true)} />} label={<div className="whiteFont">*I have paid via Venmo <b>@jcgilson</b> or Apple Pay <b>(317) 213-8188</b></div>} />

@@ -1,13 +1,21 @@
 import React from 'react';
-import Pool from './pages/Pool'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Pool from './pages/Pool';
+import SiteHeader from './components/SiteHeader';
 import './App.css';
 import "./global.css"
 
 function App() {
   return (
-    <div className="body color026647">
-      <Pool/>
-    </div>
+    <BrowserRouter>
+      <div className="body color026647">
+        <Routes>
+          <Route path="/" element={<Home/>} />
+          <Route path="/gilsonGolfPools" element={<><SiteHeader/><Pool/></>} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
